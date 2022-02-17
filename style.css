@@ -1,3 +1,6 @@
+body{
+    background-color: #d3f5ff;
+}
 h1{
     text-align: center;
 }
@@ -18,19 +21,15 @@ h1{
     display: grid;
     grid-template-columns: repeat(10, 10%);
     grid-template-rows: repeat(10, 10%);
-    width: 320px;
-    height: 320px;
+    width: 300px;
+    height: 300px;
+    gap: 2px;
     margin-top: 40px;
-    background-color: bisque;
 }
 
 .GBPLayerEl, .GBCpuEl{
-    /* display: flex;
-    align-items: center;
-    justify-content: center; */
     width: 30px;
     height: 30px;
-    border: 1px solid rgb(255, 255, 255);
     background-color: #6acde9;   
 }
 .shipEl{
@@ -41,12 +40,14 @@ h1{
     border: 1px solid rgb(95, 91, 91);
 }
 #shipBay{
-    display: flex;
-    flex-wrap: wrap;
+    /* display: flex;
+    flex-wrap: wrap; */
+    position: relative;
     width: 200px;
-    height: auto;
-    margin: 20px auto 0 auto;
+    height: 300px;
+    margin: 40px auto 0 auto;
     border: 2px solid black;
+    border-radius: 5px;
 }
 #shipBayLabel{
     display: block;
@@ -56,31 +57,30 @@ h1{
     text-align: center;
     margin-bottom: 5px;
 }
-#destroyer{
+.shipBlock{
+    display: inline-block;
+}
+#destroyer, #submarine, #cruiser, #battleship, #carrier{
     display: grid;
-    margin-left: 5px;
+    gap: 2px;
 }
-#submarine{
-    display: grid;
-    margin: 5px 0 0 5px;
-}
-#cruiser{
-    display: grid;
-    margin: 5px 0 0 5px;
-}
-#battleship{
-    display: grid;
-    margin: 5px 0 0 5px;
-}
-#carrier{
-    display: grid;
-    margin: 5px 0 5px 5px;
-}
-#rotateButton{
-    margin: 0 auto 10px auto;
-}
-.rotate{
 
+#rotateButton{
+    display: block;
+    position: absolute;
+    left: 20px;
+    top: 270px;
+    margin: 0 auto 10px auto;
+    width: 80%;
+    height: 2em;
+    background-color: rgb(58, 113, 216);
+    color: rgb(167, 219, 252);
+    border-radius: 5px;
+    border: none;
+}
+#rotateButton:hover{
+    color: rgb(58, 113, 216);
+    background-color: rgb(167, 219, 252);
 }
 .hide {
     display: none!important;
