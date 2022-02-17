@@ -44,7 +44,7 @@ h1{
     display: flex;
     flex-wrap: wrap;
     width: 200px;
-    height: 200px;
+    height: auto;
     margin: 20px auto 0 auto;
     border: 2px solid black;
 }
@@ -58,44 +58,29 @@ h1{
 }
 #destroyer{
     display: grid;
-    grid-template-columns: repeat(2, 20%);
-    grid-template-rows: 100%;
     margin-left: 5px;
-    width: 150px;
-    height: 30px;
 }
-
 #submarine{
     display: grid;
     margin: 5px 0 0 5px;
-    width: 150px;
-    height: 30px;
-    grid-template-columns: repeat(3, 20%);
-    grid-template-rows: 100%;
 }
 #cruiser{
     display: grid;
     margin: 5px 0 0 5px;
-    width: 150px;
-    height: 30px;
-    grid-template-columns: repeat(3, 20%);
-    grid-template-rows: 100%;
 }
 #battleship{
     display: grid;
     margin: 5px 0 0 5px;
-    width: 150px;
-    height: 30px;
-    grid-template-columns: repeat(4, 20%);
-    grid-template-rows: 100%;
 }
 #carrier{
     display: grid;
     margin: 5px 0 5px 5px;
-    width: 150px;
-    height: 30px;
-    grid-template-columns: repeat(5, 20%);
-    grid-template-rows: 100%;
+}
+#rotateButton{
+    margin: 0 auto 10px auto;
+}
+.rotate{
+
 }
 .hide {
     display: none!important;
