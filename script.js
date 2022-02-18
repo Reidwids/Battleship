@@ -1,16 +1,17 @@
 /* PseudoCode
 o Create Gameboards
 o Ship placing phase
-o Create ships
-o Make ships draggable onto board 
-o Make ships rotatable
-Auto generate computer ship placement
+
+o Create playerShips
+o Make playerShips draggable onto board 
+o Make playerShips rotatable
+o Auto generate computer ship placement
 Log ship placement into gamestate
 
 Playing phase
 Create guessing pieces
 Allow playerguesses on cpu board
-Create ai for cpu guesses
+Create ai for cpu guesses on playerboard
 Log guesses in gamestate
 Track guesses for win condition match
 Once game is won, display winning message
@@ -20,6 +21,7 @@ Implement extras:
     -Banner with hamburger menu
         -About section
         -Settings
+        -ship sinking animation
 */
 
 /*----- constants -----*/
@@ -35,7 +37,7 @@ const verticalLimits = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
 
 /*----- app's state (variables) -----*/
 const gameState = {
-    gameStatePlayer: [
+    player: [
     ['','','','','','','','','',''],
     ['','','','','','','','','',''],
     ['','','','','','','','','',''],
@@ -47,8 +49,7 @@ const gameState = {
     ['','','','','','','','','',''],
     ['','','','','','','','','','']
     ],
-
-    gameStateCPU: [
+    cpu: [
     ['','','','','','','','','',''],
     ['','','','','','','','','',''],
     ['','','','','','','','','',''],
@@ -68,6 +69,7 @@ let validatePosition = [];
 let shipLength;
 let selectedShipElId;
 let draggedShip;
+let allShipsPlaces = false;
 /*----- cached element references -----*/
 const GBPlayer = document.querySelector('#GBPlayer');
 const GBCpu = document.querySelector('#GBCpu');
@@ -76,7 +78,8 @@ const submarine = [document.querySelector('#submarine'), 3];
 const cruiser = [document.querySelector('#cruiser'), 3];
 const battleship = [document.querySelector('#battleship'), 4];
 const carrier = [document.querySelector('#carrier'), 5];
-const ships = [destroyer, submarine, cruiser, battleship, carrier];
+const playerShips = [destroyer, submarine, cruiser, battleship, carrier];
+const cpuShips = [2,3,3,4,5]
 const rotate = document.querySelector("#rotateButton");
 const GBCpuEl = document.querySelectorAll('.GBCpuEl');
 
@@ -123,26 +126,26 @@ function createPlayerShips(...args){
 }
 function rotateShip(){
     shipOrientation==='horizontal'?shipOrientation='vertical':shipOrientation='horizontal';
-    for (i=0;i<ships.length;i++){
+    for (i=0;i<playerShips.length;i++){
         if (shipOrientation==='horizontal'){
-            ships[i][0].style.gridTemplateColumns = `repeat(${ships[i][1]}, 20%)`;
-            ships[i][0].style.gridTemplateRows = "100%";
-            ships[i][0].style.width = "150px";
-            ships[i][0].style.height = "30px";
+            playerShips[i][0].style.gridTemplateColumns = `repeat(${playerShips[i][1]}, 20%)`;
+            playerShips[i][0].style.gridTemplateRows = "100%";
+            playerShips[i][0].style.width = "150px";
+            playerShips[i][0].style.height = "30px";
         }
         if (shipOrientation==='vertical'){
-            ships[i][0].style.gridTemplateColumns = '100%'
-            ships[i][0].style.gridTemplateRows = `repeat(${ships[i][1]}, 20%)`;
-            ships[i][0].style.width = "30px";
-            ships[i][0].style.height = "150px";
-            ships[i][0].style.margin = "5px 0 0 5px";
+            playerShips[i][0].style.gridTemplateColumns = '100%'
+            playerShips[i][0].style.gridTemplateRows = `repeat(${playerShips[i][1]}, 20%)`;
+            playerShips[i][0].style.width = "30px";
+            playerShips[i][0].style.height = "150px";
+            playerShips[i][0].style.margin = "5px 0 0 5px";
         }
     }
 }
 
 /*Drag and drop*/
 
-ships.forEach(ship=>{
+playerShips.forEach(ship=>{
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('drag', drag);
@@ -219,20 +222,33 @@ function dragDrop(e) {
     if ((shipOrientation === 'horizontal') && !horizontalLimits.slice(0, 10*(shipLength-1)).includes(shipDropSquareIndex+spaceFromLastEl) && noShipHere.every(x=>x===true)){
         for (i=0;i<shipLength;i++){
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl-i].classList.add('shipEl')
-        }
+            let tempArr = (shipDropSquareIndex+spaceFromLastEl-i).toString().split("");
+            if (tempArr.length === 1){
+                gameState.player[0][parseInt(tempArr[0])] = "S";
+            }
+            else {
+                gameState.player[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
+            }
         draggedShip.classList.add('hide');
+        }
     }
     else if ((shipOrientation === 'vertical') && !verticalLimits.slice(0, 10*(shipLength-1)).includes(shipDropSquareIndex+spaceFromLastEl*10) && noShipHere.every(x=>x===true)) {
         for (i=0;i<shipLength;i++){
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl*10-i*10].classList.add('shipEl')
+            let tempArr = (shipDropSquareIndex+spaceFromLastEl*10-i*10).toString().split("");
+            if (tempArr.length === 1){
+                gameState.player[0][parseInt(tempArr[0])] = "S";
+            }
+            else {
+                gameState.player[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
+            }
         }
         draggedShip.classList.add('hide');
     }
-    //draggedShip.style.margin = "0px"
     e.target.classList.remove('drag-over');
     selectedShipElId = "";
 }
-/*Computer Generated Ships*/
+/*Computer Generated playerShips*/
 
 //let randomShipElPositions = [];
 function createCpuShips(...args){
@@ -257,6 +273,13 @@ function createCpuShips(...args){
                 if (validatePosition.every(x=>x===true)){
                     for (let j=0;j<args[i][1];j++){
                         document.getElementById(`-${randomBoardIndex-j}`).className = 'cpuShipEl'; 
+                        let tempArr = (randomBoardIndex-j).toString().split("");
+                            if (tempArr.length === 1){
+                                gameState.cpu[0][parseInt(tempArr[0])] = "S";
+                            }
+                            else {
+                                gameState.cpu[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
+                            }
                         // const newEl1 = document.createElement('div');
                         // newEl1.className = 'cpuShipEl';
                         // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
@@ -278,6 +301,13 @@ function createCpuShips(...args){
                 if (validatePosition.every(x=>x===true)){
                     for (let j=0;j<args[i][1];j++){
                         document.getElementById(`-${randomBoardIndex-j*10}`).className = 'cpuShipEl'; 
+                        let tempArr = (randomBoardIndex-j*10).toString().split("");
+                            if (tempArr.length === 1){
+                                gameState.cpu[0][parseInt(tempArr[0])] = "S";
+                            }
+                            else {
+                                gameState.cpu[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
+                            }
                         // const newEl1 = document.createElement('div');
                         // newEl1.className = 'cpuShipEl';
                         // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
@@ -288,5 +318,6 @@ function createCpuShips(...args){
             }
         }
     }
+    console.log(gameState.cpu);
 }
 
