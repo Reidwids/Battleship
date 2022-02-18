@@ -39,6 +39,12 @@ h1{
     background-color: rgb(153, 145, 145);
     border: 1px solid rgb(95, 91, 91);
 }
+.cpuShipEl{
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(182, 31, 31);
+}
 #shipBay{
     /* display: flex;
     flex-wrap: wrap; */

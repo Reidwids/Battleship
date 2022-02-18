@@ -1,10 +1,9 @@
 /* PseudoCode
-Create Gameboards
-
-Ship placing phase
-Create ships
-Make ships draggable onto board 
-Make ships rotatable
+o Create Gameboards
+o Ship placing phase
+o Create ships
+o Make ships draggable onto board 
+o Make ships rotatable
 Auto generate computer ship placement
 Log ship placement into gamestate
 
@@ -64,6 +63,11 @@ const gameState = {
 }
 let shipOrientation = 'horizontal';
 let noShipHere = [];
+let randomNumberValid;
+let validatePosition = [];
+let shipLength;
+let selectedShipElId;
+let draggedShip;
 /*----- cached element references -----*/
 const GBPlayer = document.querySelector('#GBPlayer');
 const GBCpu = document.querySelector('#GBCpu');
@@ -74,6 +78,8 @@ const battleship = [document.querySelector('#battleship'), 4];
 const carrier = [document.querySelector('#carrier'), 5];
 const ships = [destroyer, submarine, cruiser, battleship, carrier];
 const rotate = document.querySelector("#rotateButton");
+const GBCpuEl = document.querySelectorAll('.GBCpuEl');
+
 
 /*----- event listeners -----*/
 rotate.addEventListener("click", rotateShip);
@@ -85,13 +91,14 @@ init();
 function init(){
     createGameboards();
     createPlayerShips(destroyer, submarine, cruiser, battleship, carrier);
+    createCpuShips(destroyer, submarine, cruiser, battleship, carrier);
 }
 function createGameboards(){
     for (i=0;i<gameboardSize[0]*gameboardSize[1];i++){
         const newEl1 = document.createElement('div');
         const newEl2 = document.createElement('div');
         newEl1.id = `_${i}`;
-        newEl2.id = `_${i}`;
+        newEl2.id = `-${i}`;
         newEl1.className = 'GBPLayerEl';
         newEl2.className = 'GBCpuEl';
         GBPlayer.appendChild(newEl1); 
@@ -103,7 +110,7 @@ function createPlayerShips(...args){
         for (let j=0;j<args[i][1];j++){
             const newEl1 = document.createElement('div');
             newEl1.className = 'shipEl';
-            newEl1.id = `shipEl-${j}`;
+            newEl1.id = `playerShipEl-${j}`;
             args[i][0].appendChild(newEl1);
         }
         args[i][0].setAttribute('draggable', 'true');
@@ -134,9 +141,7 @@ function rotateShip(){
 }
 
 /*Drag and drop*/
-let shipLength;
-let selectedShipElId;
-let draggedShip;
+
 ships.forEach(ship=>{
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('dragstart', dragStart);
@@ -190,8 +195,7 @@ function dragEnter(e) {
             } 
             else noShipHere.push(true);
         }
-    }
-    console.log(noShipHere);   
+    } 
 }
 function dragOver(e) {
     e.preventDefault()
@@ -201,7 +205,6 @@ function dragLeave(e) {
     e.target.classList.remove('drag-over');
 }
 function dragDrop(e) {
-    console.log(noShipHere)
     //let draggedShipLastElId = draggedShip.lastChild.id;
     let draggedShipLastElIndex = shipLength-1;
     let selectedShipElIndex = parseInt(selectedShipElId.substr(-1));
@@ -230,20 +233,60 @@ function dragDrop(e) {
     selectedShipElId = "";
 }
 /*Computer Generated Ships*/
+
+//let randomShipElPositions = [];
 function createCpuShips(...args){
-    for (i=0;i<args.length;i++){
-        for (let j=0;j<args[i][1];j++){
-            const newEl1 = document.createElement('div');
-            newEl1.className = 'cpuShipEl';
-            newEl1.id = `cpuShipEl_${j}`;
-            args[i][0].appendChild(newEl1);
+    //console.log(document.getElementById(`-37`).classList)
+    for (let i=0;i<args.length;i++){
+        randomNumberValid = false;
+        while (!randomNumberValid){
+            let randomBoardIndex = Math.floor(Math.random()*100);
+            let randomOrientation = Math.floor(Math.random()*2);
+            validatePosition = [true];
+            randomOrientation===1?randomOrientation='horizontal':randomOrientation='vertical';
+            if (randomOrientation==='horizontal'){
+                for (let j=0;j<args[i][1];j++){
+                    if((randomBoardIndex-j)>=0){
+                        if (horizontalLimits.slice(0, 10*(args[i][1]-1)).includes(randomBoardIndex)||
+                        document.getElementById(`-${randomBoardIndex-j}`).classList.contains('cpuShipEl')){
+                            validatePosition.push(false);
+                        }
+                    }
+                    else validatePosition.push(false);
+                }
+                if (validatePosition.every(x=>x===true)){
+                    for (let j=0;j<args[i][1];j++){
+                        document.getElementById(`-${randomBoardIndex-j}`).className = 'cpuShipEl'; 
+                        // const newEl1 = document.createElement('div');
+                        // newEl1.className = 'cpuShipEl';
+                        // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
+                        // document.getElementById(`-${randomBoardIndex-j}`).appendChild(newEl1);
+                        randomNumberValid = true;
+                    }
+                } 
+            }
+            if (randomOrientation==='vertical'){
+                for (let j=0;j<args[i][1];j++){
+                    if((randomBoardIndex-j*10)>=0){
+                        if (verticalLimits.slice(0, 10*(args[i][1]-1)).includes(randomBoardIndex)||
+                        document.getElementById(`-${randomBoardIndex-j*10}`).classList.contains('cpuShipEl')){
+                            validatePosition.push(false);
+                        }
+                    }
+                    else validatePosition.push(false);
+                }
+                if (validatePosition.every(x=>x===true)){
+                    for (let j=0;j<args[i][1];j++){
+                        document.getElementById(`-${randomBoardIndex-j*10}`).className = 'cpuShipEl'; 
+                        // const newEl1 = document.createElement('div');
+                        // newEl1.className = 'cpuShipEl';
+                        // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
+                        // document.getElementById(`-${randomBoardIndex-j}`).appendChild(newEl1);
+                        randomNumberValid = true;
+                    }
+                } 
+            }
         }
-        args[i][0].setAttribute('draggable', 'true');
-        args[i][0].style.gridTemplateColumns = `repeat(${args[i][1]}, 20%)`;
-        args[i][0].style.gridTemplateRows = "100%";
-        args[i][0].style.width = "150px";
-        args[i][0].style.height = "30px";
-        args[i][0].style.margin = "5px 0 0 5px";
     }
 }
 
