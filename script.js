@@ -69,10 +69,14 @@ let validatePosition = [];
 let shipLength;
 let selectedShipElId;
 let draggedShip;
-let allShipsPlaces = false;
+//FIX BELOW TO FALSE
+let allShipsPlaced = true;
+//FIX ABOVE TO FALSE
+let turn = Math.floor(Math.random()*2);
 /*----- cached element references -----*/
 const GBPlayer = document.querySelector('#GBPlayer');
 const GBCpu = document.querySelector('#GBCpu');
+const shipsPlaced = document.querySelector("#shipDiv")
 const destroyer = [document.querySelector('#destroyer'), 2];
 const submarine = [document.querySelector('#submarine'), 3];
 const cruiser = [document.querySelector('#cruiser'), 3];
@@ -81,9 +85,6 @@ const carrier = [document.querySelector('#carrier'), 5];
 const playerShips = [destroyer, submarine, cruiser, battleship, carrier];
 const cpuShips = [2,3,3,4,5]
 const rotate = document.querySelector("#rotateButton");
-const GBCpuEl = document.querySelectorAll('.GBCpuEl');
-
-
 /*----- event listeners -----*/
 rotate.addEventListener("click", rotateShip);
 
@@ -91,30 +92,36 @@ rotate.addEventListener("click", rotateShip);
 
 /*- Initialize game -*/ 
 init();
+
 function init(){
     createGameboards();
     createPlayerShips(destroyer, submarine, cruiser, battleship, carrier);
-    createCpuShips(destroyer, submarine, cruiser, battleship, carrier);
+    createCpuShips(...cpuShips);
 }
+
+/*-Initialization Functions-*/
 function createGameboards(){
     for (i=0;i<gameboardSize[0]*gameboardSize[1];i++){
-        const newEl1 = document.createElement('div');
+        const newEl = document.createElement('div');
         const newEl2 = document.createElement('div');
-        newEl1.id = `_${i}`;
-        newEl2.id = `-${i}`;
-        newEl1.className = 'GBPLayerEl';
+        newEl.id = `_${i}`;
+        newEl2.id = `c${i}`;
+        newEl.className = 'GBPLayerEl';
         newEl2.className = 'GBCpuEl';
-        GBPlayer.appendChild(newEl1); 
-        GBCpu.appendChild(newEl2); 
+        GBPlayer.appendChild(newEl); 
+        GBCpu.appendChild(newEl2);
     }
+    const GBCpuEl = document.querySelectorAll('.GBCpuEl');
+    GBCpuEl.forEach(x=>x.addEventListener('click', render))
 }
+
 function createPlayerShips(...args){
     for (i=0;i<args.length;i++){
         for (let j=0;j<args[i][1];j++){
-            const newEl1 = document.createElement('div');
-            newEl1.className = 'shipEl';
-            newEl1.id = `playerShipEl-${j}`;
-            args[i][0].appendChild(newEl1);
+            const newEl = document.createElement('div');
+            newEl.className = 'shipEl';
+            newEl.id = `playerShipEl-${j}`;
+            args[i][0].appendChild(newEl);
         }
         args[i][0].setAttribute('draggable', 'true');
         args[i][0].style.gridTemplateColumns = `repeat(${args[i][1]}, 20%)`;
@@ -124,6 +131,8 @@ function createPlayerShips(...args){
         args[i][0].style.margin = "5px 0 0 5px";
     }
 }
+
+/*-Ship Placement-*/
 function rotateShip(){
     shipOrientation==='horizontal'?shipOrientation='vertical':shipOrientation='horizontal';
     for (i=0;i<playerShips.length;i++){
@@ -146,7 +155,6 @@ function rotateShip(){
 /*Drag and drop*/
 
 playerShips.forEach(ship=>{
-    ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('drag', drag);
     ship[0].addEventListener('dragend', dragEnd);
@@ -208,7 +216,6 @@ function dragLeave(e) {
     e.target.classList.remove('drag-over');
 }
 function dragDrop(e) {
-    //let draggedShipLastElId = draggedShip.lastChild.id;
     let draggedShipLastElIndex = shipLength-1;
     let selectedShipElIndex = parseInt(selectedShipElId.substr(-1));
     let spaceFromLastEl = draggedShipLastElIndex-selectedShipElIndex;
@@ -229,8 +236,8 @@ function dragDrop(e) {
             else {
                 gameState.player[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
             }
-        draggedShip.classList.add('hide');
         }
+        draggedShip.parentNode.remove();
     }
     else if ((shipOrientation === 'vertical') && !verticalLimits.slice(0, 10*(shipLength-1)).includes(shipDropSquareIndex+spaceFromLastEl*10) && noShipHere.every(x=>x===true)) {
         for (i=0;i<shipLength;i++){
@@ -243,16 +250,17 @@ function dragDrop(e) {
                 gameState.player[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
             }
         }
-        draggedShip.classList.add('hide');
+        draggedShip.parentNode.remove();
     }
     e.target.classList.remove('drag-over');
     selectedShipElId = "";
+    if (shipsPlaced.childElementCount===0){
+        allShipsPlaced = true;
+        render()
+    }
 }
-/*Computer Generated playerShips*/
-
-//let randomShipElPositions = [];
+/*Computer Generated Ships*/
 function createCpuShips(...args){
-    //console.log(document.getElementById(`-37`).classList)
     for (let i=0;i<args.length;i++){
         randomNumberValid = false;
         while (!randomNumberValid){
@@ -261,18 +269,18 @@ function createCpuShips(...args){
             validatePosition = [true];
             randomOrientation===1?randomOrientation='horizontal':randomOrientation='vertical';
             if (randomOrientation==='horizontal'){
-                for (let j=0;j<args[i][1];j++){
+                for (let j=0;j<args[i];j++){
                     if((randomBoardIndex-j)>=0){
-                        if (horizontalLimits.slice(0, 10*(args[i][1]-1)).includes(randomBoardIndex)||
-                        document.getElementById(`-${randomBoardIndex-j}`).classList.contains('cpuShipEl')){
+                        if (horizontalLimits.slice(0, 10*(args[i]-1)).includes(randomBoardIndex)||
+                        document.getElementById(`c${randomBoardIndex-j}`).classList.contains('cpuShipEl')){
                             validatePosition.push(false);
                         }
                     }
                     else validatePosition.push(false);
                 }
                 if (validatePosition.every(x=>x===true)){
-                    for (let j=0;j<args[i][1];j++){
-                        document.getElementById(`-${randomBoardIndex-j}`).className = 'cpuShipEl'; 
+                    for (let j=0;j<args[i];j++){
+                        document.getElementById(`c${randomBoardIndex-j}`).className = 'cpuShipEl'; 
                         let tempArr = (randomBoardIndex-j).toString().split("");
                             if (tempArr.length === 1){
                                 gameState.cpu[0][parseInt(tempArr[0])] = "S";
@@ -280,27 +288,27 @@ function createCpuShips(...args){
                             else {
                                 gameState.cpu[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
                             }
-                        // const newEl1 = document.createElement('div');
-                        // newEl1.className = 'cpuShipEl';
-                        // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
-                        // document.getElementById(`-${randomBoardIndex-j}`).appendChild(newEl1);
+                        // const newEl = document.createElement('div');
+                        // newEl.className = 'cpuShipEl';
+                        // newEl.id = `cpuShipEl-${args[i]-j}`;
+                        // document.getElementById(`c${randomBoardIndex-j}`).appendChild(newEl);
                         randomNumberValid = true;
                     }
                 } 
             }
             if (randomOrientation==='vertical'){
-                for (let j=0;j<args[i][1];j++){
+                for (let j=0;j<args[i];j++){
                     if((randomBoardIndex-j*10)>=0){
-                        if (verticalLimits.slice(0, 10*(args[i][1]-1)).includes(randomBoardIndex)||
-                        document.getElementById(`-${randomBoardIndex-j*10}`).classList.contains('cpuShipEl')){
+                        if (verticalLimits.slice(0, 10*(args[i]-1)).includes(randomBoardIndex)||
+                        document.getElementById(`c${randomBoardIndex-j*10}`).classList.contains('cpuShipEl')){
                             validatePosition.push(false);
                         }
                     }
                     else validatePosition.push(false);
                 }
                 if (validatePosition.every(x=>x===true)){
-                    for (let j=0;j<args[i][1];j++){
-                        document.getElementById(`-${randomBoardIndex-j*10}`).className = 'cpuShipEl'; 
+                    for (let j=0;j<args[i];j++){
+                        document.getElementById(`c${randomBoardIndex-j*10}`).className = 'cpuShipEl'; 
                         let tempArr = (randomBoardIndex-j*10).toString().split("");
                             if (tempArr.length === 1){
                                 gameState.cpu[0][parseInt(tempArr[0])] = "S";
@@ -308,16 +316,69 @@ function createCpuShips(...args){
                             else {
                                 gameState.cpu[parseInt(tempArr[0])][parseInt(tempArr[1])] = "S"
                             }
-                        // const newEl1 = document.createElement('div');
-                        // newEl1.className = 'cpuShipEl';
-                        // newEl1.id = `cpuShipEl-${args[i][1]-j}`;
-                        // document.getElementById(`-${randomBoardIndex-j}`).appendChild(newEl1);
+                        // const newEl = document.createElement('div');
+                        // newEl.className = 'cpuShipEl';
+                        // newEl.id = `cpuShipEl-${args[i]-j}`;
+                        // document.getElementById(`c${randomBoardIndex-j}`).appendChild(newEl);
                         randomNumberValid = true;
                     }
                 } 
             }
         }
     }
-    console.log(gameState.cpu);
 }
 
+/*-Render Game-*/
+function render(e){
+    if(allShipsPlaced===true){
+        if(whosTurn()==='player'){
+            //newEl2.className = 'cpuGuess';
+            let selectedCpuId = parseInt(e.target.id.substr(-2))?
+            e.target.id.substr(-2):
+            e.target.id.substr(-1);
+            let tempArr = selectedCpuId.split("");
+            console.log(gameState.cpu)
+            console.log(gameState.cpu[0][parseInt(tempArr[0])]);
+            if (tempArr.length === 1){
+                if (gameState.cpu[0][parseInt(tempArr[0])]==='S'){
+                    const newEl = document.createElement('div');
+                    newEl.className = 'guess';
+                    newEl.id = 'hit'
+                    e.target.appendChild(newEl);
+                }
+                else {
+                    const newEl = document.createElement('div');
+                    newEl.className = 'guess';
+                    newEl.id = 'miss'
+                    e.target.appendChild(newEl);
+                }
+            }
+            else {
+                if (gameState.cpu[parseInt(tempArr[0])][parseInt(tempArr[1])]==='S'){
+                    const newEl = document.createElement('div');
+                    newEl.className = 'guess';
+                    newEl.id = 'hit'
+                    e.target.appendChild(newEl);
+                }
+                else {
+                    const newEl = document.createElement('div');
+                    newEl.className = 'guess';
+                    newEl.id = 'miss'
+                    e.target.appendChild(newEl);
+                }
+            }
+            checkShips()
+        }
+        else {
+            
+        }
+    }
+}
+
+function whosTurn(){
+    turn===1?turn--:turn++;
+    return turn===1?"player":"cpu";
+}
+function checkShips(){
+
+}
