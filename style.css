@@ -1,11 +1,50 @@
 *{
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 body{
     background-color: #d3f5ff;
 }
 h1{
     text-align: center;
+    font-family: 'Bangers', cursive;
+    font-size: 60px;
+}
+.title{
+    margin: 0 auto;
+    font-size: 100px;
+    padding: 400px 0 0 0 ;
+}
+#battleshipImg{
+    width: 600px;
+    position: absolute;
+    bottom: -75px;
+    z-index: -1;
+    height: auto;
+    animation: animate 3s linear infinite;
+    /* animation-delay: 0s; */
+}
+@keyframes animate {
+    0%,100% { transform: translate(0,0); }
+    50%     { transform: translate(0,10px); }
+}
+#pageLink{
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    color: black;
+    font-size: 25px;
+    background-color: #74e1ff;
+    border-radius: 5px;
+    width: 150px;
+    height: 2em;
+    margin: 0 auto;
+    line-height: 2em;
+}
+#pageLink:hover{
+    background-color: #1E7DEA;
+    color: white;
 }
 
 #gameBoards{
@@ -132,3 +171,100 @@ h1{
     height: 8px;
 }
 
+/* section{
+    position: relative;
+    width: 100%;
+    height: 400px;
+}
+section .wave{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: url(/Labs/Battleship/Files/wave.png);
+    background-size: 1000px 100px;
+}
+section .wave.wave1{
+    animation: animate 30s linear infinite;
+    z-index: 1000;
+    opacity: 1;
+    animation-delay: 0s;
+    bottom: 20px;
+}
+section .wave.wave2{
+    animation: animate2 15s linear infinite;
+    z-index: 999;
+    opacity: 0.5;
+    animation-delay: -5s;
+    bottom: 30px;
+}
+section .wave.wave3{
+    animation: animate2 25s linear infinite;
+    z-index: 998;
+    opacity: 0.2;
+    animation-delay: -2s;
+    bottom: 25px;
+}
+section .wave.wave3{
+    animation: animate2 10s linear infinite;
+    z-index: 997;
+    opacity: 0.7;
+    animation-delay: -2s;
+    bottom: 40px;
+}
+@keyframes animate {
+    0%
+    {
+        background-position-x: 0;
+    }
+    100%
+    {
+        background-position: 1000px;
+    }
+
+}
+@keyframes animate2 {
+    0%
+    {
+        background-position-x: 0;
+    }
+    100%
+    {
+        background-position: -1000px;
+    }
+
+} */
+.LightWaves {
+    animation: lightwaves 2s infinite;
+    position: relative;
+  }
+  
+  @keyframes lightwaves {
+      0%,100% { transform: translate(0,0); }
+      25%     { transform: translate(5px,5px); transform: scale(1.05); }
+      50%     { transform: translate(25px, 5px); }
+      75%     { transform: translate(12px,10px); transform: scale(1.05); }
+  }
+  
+  .DarkWaves {
+    animation: darkwaves 3.8s infinite;
+  }
+  
+  @keyframes darkwaves {
+      0%,100% { transform: translate(0,0); }
+      25%     { transform: translate(25px, 5px); transform: scale(1.05); }
+      50%     { transform: translate(12px,10px); }
+      75%     { transform: translate(5px,5px); }
+  }
+  
+  .WhiteWaves {
+    animation: whitewaves 4s alternate ease infinite;
+  }
+  
+  @keyframes whitewaves {
+      0% { transform: translate(0,25px); }
+      100%     { transform: translate(25px,35px); }
+  }
+  
+  
