@@ -5,6 +5,7 @@
 }
 body{
     background-color: #d3f5ff;
+    position: relative;
 }
 h1{
     text-align: center;
@@ -15,19 +16,71 @@ h1{
     margin: 0 auto;
     font-size: 100px;
     padding: 400px 0 0 0 ;
+    position: relative;
+    z-index: 1;
 }
 #battleshipImg{
     width: 600px;
     position: absolute;
-    bottom: -75px;
+    bottom: -72px;
+    left: 20%;
     z-index: -1;
     height: auto;
     animation: animate 3s linear infinite;
+
     /* animation-delay: 0s; */
+}
+.cloud{
+    display: block;
+    background: white;
+    background: linear-gradient(top, white 5%, #f1f1f1 100%);
+    /* filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='white',endColorstr='#f1f1f1',GradientType=0); */
+    border-radius: 100px;
+    box-shadow: 0 8px 5px rgba(0,0,0,0.1);
+    height: 120px;
+    position: absolute;
+    width: 350px;
+    z-index: 0;
+}
+#cloud1{
+    top: 600px;
+}
+#cloud2{
+    top: 1200px;
+}
+#cloud3{
+    top: 400px;
+}
+#cloud4{
+    top: 50px;
+}
+#cloudCont1{
+    animation: animateCloud 35s linear infinite;
+    transform: scale(0.65);    
+}
+#cloudCont2{
+    animation: animateCloud 25s linear infinite;
+    transform: scale(0.45);
+}
+#cloudCont3{
+    animation: animateCloud 30s linear infinite;
+    transform: scale(0.50);
+}
+#cloudCont4{
+    animation: animateCloud 20s linear infinite;
+    transform: scale(0.60);
 }
 @keyframes animate {
     0%,100% { transform: translate(0,0); }
     50%     { transform: translate(0,10px); }
+}
+@keyframes animateCloud{
+    0%{
+        background-position-x: 0;
+    }
+    100%{
+        background-position: 1000px;
+    }
 }
 #pageLink{
     display: block;
