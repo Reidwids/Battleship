@@ -63,8 +63,9 @@ let selectedShipElId;
 let draggedShip;
 let draggedShipClass;
 let sfxToggle = 1;
+let winConditionMet = false;
 //FIX BELOW TO FALSE
-let allShipsPlaced = true;
+let allShipsPlaced = false;
 //FIX ABOVE TO FALSE
 let turn = Math.floor(Math.random()*2);
 /*----- cached element references -----*/
@@ -85,6 +86,7 @@ const shipBay = document.querySelector("#shipBay");
 const gameBoards = document.querySelector("#gameBoards");
 const sound = document.querySelector("#audioButton");
 const sfx = document.querySelector("#sfxButton");
+const replay = document.querySelector('#replayButton');
 const music = new Audio();
 const sfxAmbientBoat = new Audio();
 const sfxBell = new Audio();
@@ -108,9 +110,6 @@ function sfxToggleFunc(){
     sfxToggle===1?sfxToggle=0:sfxToggle=1;
     if (sfxToggle===0){
         sfxAmbientBoat.pause()
-        // sfxBell.mute() = true;
-        // sfxSplash.mute() = true;
-        // sfxAmbientBoat.mute() = true;
     }
     if (sfxToggle===1 && allShipsPlaced){
         sfxAmbientBoat.play();
@@ -133,7 +132,7 @@ function playSfx(sfx){
 
 /*----- event listeners -----*/
 rotate.addEventListener("click", rotateShip);
-
+replay.addEventListener("click", restartGame)
 
 /*----- functions -----*/
 
@@ -150,7 +149,87 @@ function init(){
     music.play();
     music.volume = 0.6;
 }
-
+function restartGame(){
+    init();
+}
+/*-Render Game-*/
+function render(e){
+    if(allShipsPlaced===true&&winConditionMet===false){
+        if(!e.target.hasChildNodes() && !e.target.classList.contains("guess")){
+            let selectedCpuId = parseInt(e.target.id.substr(-2))?
+            e.target.id.substr(-2):
+            e.target.id.substr(-1);
+            let tempArr = selectedCpuId.split("");
+            placeGuess(tempArr, gameState.cpu, e.target)
+            //e.target pass as guess instead
+            updateShipHp(selectedCpuId, "cpu");
+            if (winConditionMet===true){
+                replay.style.display = 'block';
+                replay.style.margin = '10px';
+            }
+            setTimeout(cpuTurn, 500);
+        }
+    }
+}
+function placeGuess(tempArr, gameStateWithPlayer, target){
+    if (tempArr.length === 1){
+        if (gameStateWithPlayer.grid[0][parseInt(tempArr[0])]===0){
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'hit'
+            target.appendChild(newEl);
+        }
+        else {
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'miss'
+            target.appendChild(newEl);
+        }
+    }
+    else {
+        if (gameStateWithPlayer.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]===0){
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'hit';
+            target.appendChild(newEl);
+        }
+        else {
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'miss';
+            target.appendChild(newEl);
+        }
+    }
+}
+function updateShipHp(guess, role){
+    const gsThis = role=='player' ? gameState.player : gameState.cpu;
+    const gsOther = role=='player' ? gameState.cpu : gameState.player;
+    let tempGridEl;
+    if (gsThis===gameState.player)
+        tempGridEl = document.querySelector(`#_${guess}`);
+    else 
+        tempGridEl = document.querySelector(`#c${guess}`);
+    ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
+        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
+            console.log(ship)
+            console.log(gsThis[`${ship}Hp`])
+            console.log(tempGridEl.classList.contains(ship))
+            gsThis[`${ship}Hp`]--;
+        }
+         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
+            gsThis[`${ship}Hp`]--;
+            gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
+        }
+        })
+    if (gsThis.destroyerHp===0&&
+        gsThis.submarineHp===0&&
+        gsThis.cruiserHp===0&&
+        gsThis.battleshipHp===0&&
+        gsThis.carrierHp===0){
+            gameInfo.innerText = `The ${gsOther.opponentName} has won!`
+            winConditionMet = true;
+        }
+}
 /*-Initialization Functions-*/
 function createGameboards(){
     for (i=0;i<gameboardSize[0]*gameboardSize[1];i++){
@@ -248,10 +327,12 @@ function dragEnter(e) {
     
     if (shipOrientation === 'vertical'){
         for (i=0;i<shipLength;i++){
-            if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl*10-i*10].classList.contains('shipEl')){
-                noShipHere.push(false);
-            } 
-            else noShipHere.push(true);
+            try{
+                if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl*10-i*10].classList.contains('shipEl')){
+                    noShipHere.push(false);
+                } 
+                else noShipHere.push(true);
+            }catch{}
         }
     } 
 }
@@ -314,7 +395,6 @@ function dragDrop(e) {
         rotate.style.top = "0";
         rotate.style.width = "250px";
         rotate.style.height = "50px";
-        // rotate.style.borderRadius = "50%";
         rotate.style.color = "white";
         rotate.style.backgroundColor = "rgb(182, 31, 31)";
         rotate.addEventListener("click", deleteShipBay);
@@ -400,81 +480,7 @@ function createCpuShips(...args){
     }
 }
 
-/*-Render Game-*/
-function render(e){
-    if(allShipsPlaced===true){
-        if(!e.target.hasChildNodes() && !e.target.classList.contains("guess")){
-            let selectedCpuId = parseInt(e.target.id.substr(-2))?
-            e.target.id.substr(-2):
-            e.target.id.substr(-1);
-            let tempArr = selectedCpuId.split("");
-            placeGuess(tempArr, gameState.cpu, e.target)
-            //e.target pass as guess instead
-            updateShipHp(selectedCpuId, "cpu");
-            setTimeout(cpuTurn, 800);
-        }
-    }
-}
-function placeGuess(tempArr, gameStateWithPlayer, target){
-    if (tempArr.length === 1){
-        if (gameStateWithPlayer.grid[0][parseInt(tempArr[0])]===0){
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'hit'
-            target.appendChild(newEl);
-        }
-        else {
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'miss'
-            target.appendChild(newEl);
-        }
-    }
-    else {
-        if (gameStateWithPlayer.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]===0){
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'hit';
-            target.appendChild(newEl);
-        }
-        else {
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'miss';
-            target.appendChild(newEl);
-        }
-    }
-}
-function updateShipHp(guess, role){
-    const gsThis = role=='player' ? gameState.player : gameState.cpu;
-    const gsOther = role=='player' ? gameState.cpu : gameState.player;
-    let tempGridEl;
-    if (gsThis===gameState.player)
-        tempGridEl = document.querySelector(`#_${guess}`);
-    else 
-        tempGridEl = document.querySelector(`#c${guess}`);
-    ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
-        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
-            console.log(ship)
-            console.log(gsThis[`${ship}Hp`])
-            console.log(tempGridEl.classList.contains(ship))
-            gsThis[`${ship}Hp`]--;
-        }
-         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
-            gsThis[`${ship}Hp`]--;
-            gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
-        }
-        })
-    if (gsThis.destroyerHp===0&&
-        gsThis.submarineHp===0&&
-        gsThis.cruiserHp===0&&
-        gsThis.battleshipHp===0&&
-        gsThis.carrierHp===0){
-            gameInfo.innerText = `The ${gsOther.opponentName} has won!`
-            return true;
-        }
-    return false;
-}
+
 function cpuTurn(){
     let tempGuess = cpuGuess()
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);

@@ -14,7 +14,7 @@ body{
     background-position: center; 
     background-repeat: no-repeat;
     background-size: cover;    
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 /* NavBar */
 .top-nav {
@@ -309,12 +309,28 @@ h1{
     width: 8px;
     height: 8px;
 }
+/* Replay */
+#replayContainer{
 
+}
+#replayButton{
+    display: none;
+    margin: 0 auto;
+    border: none;
+    color: white;
+    width: 250px;
+    font-size: 20px;
+    font-family: monospace;
+    height: 50px;
+    border-radius: 5px;
+    background-color: rgb(182, 31, 31);
+}
+/* Title page design */
 .LightWaves {
     animation: lightwaves 2s infinite;
     position: relative;
 }
-/* Title page design */
+
 @keyframes lightwaves {
     0%,100% { transform: translate(0,0); }
     25%     { transform: translate(5px,5px); transform: scale(1.05); }
