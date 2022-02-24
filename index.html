@@ -8,12 +8,31 @@
     <link rel="stylesheet" href="style.css">
     <script defer src="script.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
 </head>
 <body>
     <main>
-        <h1>Battleship!</h1>
+        <section class="top-nav">
+          <div>
+            <h1>Battleship!</h1>
+          </div>
+          <input id="menu-toggle" type="checkbox" />
+          <label class='menu-button-container' for="menu-toggle">
+          <div class='menu-button'></div>
+        </label>
+          <ul class="menu">
+            <li>Settings</li>
+            <li>About</li>
+            <li>My LinkedIn</li>
+          </ul>
+        </section>
+        <div id="audioButtons">
+            <button id="audioButton">
+                <img id="audioImg" src="/Labs/Battleship/Files/kisspng-computer-icons-vector-graphics-loudspeaker-sound-e-delivery-motorbike-png-icon-png-repo-free-png-ic-5cc186e1508eb3.49575378155618684933.png">
+            </button>
+            <button id="sfxButton">SFX</button>
+        </div>
         <div id="gameBoards">  
             <div id="GBPlayer"></div>
             <div id="GBCpu"></div>

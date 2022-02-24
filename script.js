@@ -1,29 +1,3 @@
-/* PseudoCode
-o Create Gameboards
-o Ship placing phase
-
-o Create playerShips
-o Make playerShips draggable onto board 
-o Make playerShips rotatable
-o Auto generate computer ship placement
-Log ship placement into gamestate
-
-Playing phase
-Create guessing pieces
-Allow playerguesses on cpu board
-Create ai for cpu guesses on playerboard
-Log guesses in gamestate
-Track guesses for win condition match
-Once game is won, display winning message
-
-Implement extras:
-    -SFX and Music
-    -Banner with hamburger menu
-        -About section
-        -Settings
-        -ship sinking animation
-*/
-
 /*----- constants -----*/
 const gameboardSize = [10,10];
 const destroyerSize = 2;
@@ -53,7 +27,7 @@ const gameState = {
         cruiserHp: 3,
         battleshipHp: 4,
         carrierHp: 5,
-        opponentName: "player's"
+        opponentName: "player"
     },
     cpu: {
         grid: [[1,1,1,1,1,1,1,1,1,1],
@@ -75,7 +49,7 @@ const gameState = {
         leads: [],
         currentLead: [],
         potentialGuesses: [],
-        opponentName: "cpu's",
+        opponentName: "cpu",
         huntMode: "",
     }
 }
@@ -88,6 +62,7 @@ let shipLength;
 let selectedShipElId;
 let draggedShip;
 let draggedShipClass;
+let sfxToggle = 1;
 //FIX BELOW TO FALSE
 let allShipsPlaced = true;
 //FIX ABOVE TO FALSE
@@ -106,8 +81,59 @@ const cpuShips = [2,3,3,4,5]
 const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
 const rotate = document.querySelector("#rotateButton");
 const gameInfo = document.querySelector("#gameInfo");
+const shipBay = document.querySelector("#shipBay");
+const gameBoards = document.querySelector("#gameBoards");
+const sound = document.querySelector("#audioButton");
+const sfx = document.querySelector("#sfxButton");
+const music = new Audio();
+const sfxAmbientBoat = new Audio();
+const sfxBell = new Audio();
+const sfxSplash = new Audio();
+music.src = "/Labs/Battleship/Files/Pirates of the caribbean 8-bit. (1).mp3";
+sfxBell.src = "/Labs/Battleship/Files/bell.wav";
+sfxSplash.src = "/Labs/Battleship/Files/splash.wav";
+sfxAmbientBoat.src = "/Labs/Battleship/Files/ambient.wav";
+
+sound.addEventListener("click", playMusic);
+sfx.addEventListener("click", sfxToggleFunc);
+function playMusic(){
+    if (music.duration>0 && !music.paused)
+        music.pause();
+    else {
+        music.play();
+        music.loop = true;
+    }
+}
+function sfxToggleFunc(){
+    sfxToggle===1?sfxToggle=0:sfxToggle=1;
+    if (sfxToggle===0){
+        sfxAmbientBoat.pause()
+        // sfxBell.mute() = true;
+        // sfxSplash.mute() = true;
+        // sfxAmbientBoat.mute() = true;
+    }
+    if (sfxToggle===1 && allShipsPlaced){
+        sfxAmbientBoat.play();
+    }
+}
+function playSfx(sfx){
+    if (sfx==="bell"&&sfxToggle===1){
+        sfxBell.play();
+    }
+    if (sfx==="splash"&&sfxToggle===1){
+        sfxSplash.play();
+        sfxSplash.volume = 0.3;
+    }
+    if (sfx==="ambient"&&sfxToggle===1){
+        sfxAmbientBoat.play();
+        sfxAmbientBoat.loop = true;
+    }
+
+}
+
 /*----- event listeners -----*/
 rotate.addEventListener("click", rotateShip);
+
 
 /*----- functions -----*/
 
@@ -121,6 +147,8 @@ function init(){
     createGameboards();
     createPlayerShips(destroyer, submarine, cruiser, battleship, carrier);
     createCpuShips(...cpuShips);
+    music.play();
+    music.volume = 0.6;
 }
 
 /*-Initialization Functions-*/
@@ -273,16 +301,35 @@ function dragDrop(e) {
             }
         }
         draggedShip.parentNode.remove();
+        
+        sfxSplash.play()
     }
     e.target.classList.remove('drag-over');
     selectedShipElId = "";
+    playSfx("splash");
     if (shipsPlaced.childElementCount===0){
-        allShipsPlaced = true;
-        if (whosFirst()==='cpu'){
-                //set timeout
+        rotate.innerText = "Ready for battle!";
+        rotate.style.position = "relative";
+        rotate.style.left = "0";
+        rotate.style.top = "0";
+        rotate.style.width = "250px";
+        rotate.style.height = "50px";
+        // rotate.style.borderRadius = "50%";
+        rotate.style.color = "white";
+        rotate.style.backgroundColor = "rgb(182, 31, 31)";
+        rotate.addEventListener("click", deleteShipBay);
+        if (whosFirst()==='cpu'&&allShipsPlaced){
             cpuTurn();
         }
     }
+}
+function deleteShipBay(){
+    shipBay.style.display = "none";
+    allShipsPlaced = true;
+    playSfx("ambient");
+    sfxAmbientBoat.loop = true;
+    playSfx("bell");
+    gameBoards.style.marginTop = "15%"
 }
 /*Computer Generated Ships*/
 function createCpuShips(...args){
@@ -315,10 +362,6 @@ function createCpuShips(...args){
                             else {
                                 gameState.cpu.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]--
                             }
-                        // const newEl = document.createElement('div');
-                        // newEl.className = 'cpuShipEl';
-                        // newEl.id = `cpuShipEl-${args[i]-j}`;
-                        // document.getElementById(`c${randomBoardIndex-j}`).appendChild(newEl);
                         randomNumberValid = true;
                     }
                 } 
@@ -366,8 +409,9 @@ function render(e){
             e.target.id.substr(-1);
             let tempArr = selectedCpuId.split("");
             placeGuess(tempArr, gameState.cpu, e.target)
-            updateShipHp(e.target, gameState.cpu);
-            cpuTurn()
+            //e.target pass as guess instead
+            updateShipHp(selectedCpuId, "cpu");
+            setTimeout(cpuTurn, 800);
         }
     }
 }
@@ -378,7 +422,6 @@ function placeGuess(tempArr, gameStateWithPlayer, target){
             newEl.className = 'guess';
             newEl.id = 'hit'
             target.appendChild(newEl);
-            
         }
         else {
             const newEl = document.createElement('div');
@@ -402,113 +445,44 @@ function placeGuess(tempArr, gameStateWithPlayer, target){
         }
     }
 }
-function updateShipHp(target, gameStateWithPlayer){
-    if (target.classList.contains('destroyer')&&gameStateWithPlayer.destroyerHp!==1) gameStateWithPlayer.destroyerHp--;
-    else if(target.classList.contains('destroyer')) {
-        gameStateWithPlayer.destroyerHp--;
-        gameInfo.innerText = `The ${gameStateWithPlayer.opponentName} destroyer has sunk!`;
-    }
-    if (target.classList.contains('submarine')&&gameStateWithPlayer.submarineHp!==1) gameStateWithPlayer.submarineHp--;
-    else if(target.classList.contains('submarine')) {
-        gameStateWithPlayer.submarineHp--;
-        gameInfo.innerText = `The ${gameStateWithPlayer.opponentName} submarine has sunk!`;
-    }
-    if (target.classList.contains('cruiser')&&gameStateWithPlayer.cruiserHp!==1) gameStateWithPlayer.cruiserHp--;
-    else if(target.classList.contains('cruiser')) {
-        gameStateWithPlayer.cruiserHp--;
-        gameInfo.innerText = `The ${gameStateWithPlayer.opponentName} cruiser has sunk!`;
-    }
-    if (target.classList.contains('battleship')&&gameStateWithPlayer.battleshipHp!==1) gameStateWithPlayer.battleshipHp--;
-    else if(target.classList.contains('battleship')) {
-        gameStateWithPlayer.battleshipHp--;
-        gameInfo.innerText = `The ${gameStateWithPlayer.opponentName} battleship has sunk!`;
-    }
-    if (target.classList.contains('carrier')&&gameStateWithPlayer.carrierHp!==1) gameStateWithPlayer.carrierHp--;
-    else if(target.classList.contains('carrier')) {
-        gameStateWithPlayer.carrierHp--;
-        gameInfo.innerText = `The ${gameStateWithPlayer.opponentName} carrier has sunk!`;
-    }
-    if (gameStateWithPlayer.destroyerHp===0&&
-        gameStateWithPlayer.submarineHp===0&&
-        gameStateWithPlayer.cruiserHp===0&&
-        gameStateWithPlayer.battleshipHp===0&&
-        gameStateWithPlayer.carrierHp===0){
-            gameInfo.innerText = "You won!";
+function updateShipHp(guess, role){
+    const gsThis = role=='player' ? gameState.player : gameState.cpu;
+    const gsOther = role=='player' ? gameState.cpu : gameState.player;
+    let tempGridEl;
+    if (gsThis===gameState.player)
+        tempGridEl = document.querySelector(`#_${guess}`);
+    else 
+        tempGridEl = document.querySelector(`#c${guess}`);
+    ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
+        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
+            console.log(ship)
+            console.log(gsThis[`${ship}Hp`])
+            console.log(tempGridEl.classList.contains(ship))
+            gsThis[`${ship}Hp`]--;
         }
+         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
+            gsThis[`${ship}Hp`]--;
+            gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
+        }
+        })
+    if (gsThis.destroyerHp===0&&
+        gsThis.submarineHp===0&&
+        gsThis.cruiserHp===0&&
+        gsThis.battleshipHp===0&&
+        gsThis.carrierHp===0){
+            gameInfo.innerText = `The ${gsOther.opponentName} has won!`
+            return true;
+        }
+    return false;
 }
-function checkIfSunk(guess, playerObj){
-    const guessEl = document.querySelector(`_${guess}`);
-    if ((guessEl.classList.contains('destroyer')&&gameState[playerObj].destroyerHp===1)||
-        (guessEl.classList.contains('submarine')&&gameState[playerObj].submarineHp===1)||
-        (guessEl.classList.contains('cruiser')&&gameState[playerObj].cruiserHp===1)||
-        (guessEl.classList.contains('battleship')&&gameState[playerObj].battleshipHp===1)||
-        (guessEl.classList.contains('carrier')&&gameState[playerObj].carrierHp===1)){
-            gameState.cpu.potentialGuesses = [];
-            gameState.cpu.leads = [];
-}
-
-/*  Our Strategy:
-    With a hit, we encompass area around hit to find circumference of the ship(s)
-
-    { leads, potentialGuess, guesses }    
-    Shot, Hit? -> NO -> Save +{guesses} -> potentialGuess? -> NO -> [Shot]
-         |YES                                           |YES
-    Save +{leads}                                    [Shot]
-         |
-    Any Hits Beside This (assess vertical/horizontal hit path)? -> NO -> [Shot]
-         |YES
-    Complete shots in either direction from hit until misses on either side
-
-    * * * 
-    Redoing with our current function structure flow
-    <cpuNextGuess>   <------  <-----
-         |                  |      |
-    <cpuCheckIfHit> -> NO ->       |
-         | YES                     |
-    (Are we in Hunt Mode?) -> YES -|     (in hunt mode we stay focused on 'hunting' the ship)
-         | NO                      |
-    <cpuCheckProximityHits> -> NO -|            (an already 'hunted' ship should NOT trigger proximity hit)
-         | YES                     |
-    (Go into hunt-mode around hit)-
-
-
-    only big challenge: how to look for proximity hits, EXCLUDING prior sunk ships.
-    object for a sunk ship:
-       [34,35,36]
-    so proximity check must exclude the sunk ships
-
-    THAT'S ALL FOLKS!
-
-    What part do you want me to do? Vs you, Derek?
-
-    0   0   0   0   0   0   0   0   0   0
-    0  11  12   0   0   0   0   0   0   0
-    0   0   0   2   0   0   0   0   0   0
-    0   0   0   2   0   0   0   0   0   0
-    0   0   0   2   0   0   0   0   0   0
-    0   0   0   0   0   0   0   0   0   0
-    0   0   0   0   0   0   0   0   0   0
-    0   0   0   0   3   3   3   3   0   0
-    0   0   5   5   5   5   5   0   0   0
-    0   0   0   0   0   0   0   0   0   0
-
-    cpuShips = { destroyer: [11, 12], battleship: [24,34,44], cruiser: [] }
-    if hit:
-    check if full-set of ships in the cpuLeads [10,11,12]
-
-*/
 function cpuTurn(){
     let tempGuess = cpuGuess()
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);
     let tempArr = tempGuess.toString().split("");
     placeGuess(tempArr, gameState.player, cpuGuessEl)
-    updateShipHp(cpuGuessEl, gameState.player)
+    updateShipHp(tempGuess, "player")
 }
 function cpuNextPotentialGuesses( guess ){
-    // we take the point, then we figure out LEFT, RIGHT, TOP, BELOW
-    //          (top)
-    //   (left)   *   (right)
-    //         (bottom)
     let newLeads = [];
     const top = guess-10;
     // if this point exists & is not already a hit, we keep it.
@@ -529,16 +503,7 @@ function cpuNextPotentialGuesses( guess ){
         
     return newLeads;
 }
-
-// NextGuess does this:
-// - if 'huntMode' we look for matches in potentialGuesses along the hunt-path
-// - else randomly pick from potentialGuesses
-// - else new random pick (point that is not already tried)
-
 function cpuCheckProximityHits( guess ){
-    // if gameState.cpu.leads ABOVE/BELOW guess -> hunt Vertical
-    console.log("leads: ", gameState.cpu.leads)
-    console.log("guess: ", guess)
     if( gameState.cpu.leads.includes(guess-10) || gameState.cpu.leads.includes(guess+10) )
         return 'v'
     else if( gameState.cpu.leads.includes(guess-1) || gameState.cpu.leads.includes(guess+1) )
@@ -556,47 +521,50 @@ function cpuCheckIfHit(guess){
     else return false;
 }
 function newPotentialGuessIfHit (guess){
-    if( gameState.cpu.leads.includes(guess-10))
+    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess-10))
         gameState.cpu.potentialGuesses.push(guess+10);
-    if( gameState.cpu.leads.includes(guess+10))
+    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess+10))
         gameState.cpu.potentialGuesses.push(guess-10);
-    if( gameState.cpu.leads.includes(guess-1))
+    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess-1))
         gameState.cpu.potentialGuesses.push(guess+1);
-    if( gameState.cpu.leads.includes(guess+1))
+    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess+1))
         gameState.cpu.potentialGuesses.push(guess-1);
 }
 function cpuGuess(){
-    let huntGuess;
     let huntDirection = gameState.cpu.huntMode;
-    // let guess;
-    // let chooseRandom;
-    // let guessId;
-    // let guessEl;
-    let settingPGs = false;
-    // let chosenGuess;
-
     let guess = cpuNextGuess();
     gameState.cpu.guesses.push(guess);
 
     if( cpuCheckIfHit(guess) ){
+        //
+        updateShipHp(guess, "cpu");
+        //^
         gameState.cpu.leads.push(guess);
-        if( !gameState.cpu.potentialGuesses.length ){
-            // generate NextGuess Leads ... 
-            let aroundHitGuesses = cpuNextPotentialGuesses( guess );
-            gameState.cpu.potentialGuesses.push(...aroundHitGuesses); // = [...gameState.cpu.leads, ...newGuessLeads]
-        } else {
-            // are we in hunt mode? 
+        if(gameState.cpu.potentialGuesses.length) {
+            newPotentialGuessIfHit(guess);
             if( !huntDirection ){
                 // see if there's a hunt-pattern
                 gameState.cpu.huntMode = cpuCheckProximityHits(guess);
                 gameState.cpu.huntGuess = guess;
-                newPotentialGuessIfHit(guess);
-            } else {
-                // choose a hunt-direction potentialGuess as our next guess try
-
-
             }
         }
+        else if( !gameState.cpu.potentialGuesses.length && !gameState.cpu.huntMode ){
+            // generate NextGuess Leads ... 
+            let aroundHitGuesses = cpuNextPotentialGuesses( guess );
+            gameState.cpu.potentialGuesses.push(...aroundHitGuesses); // = [...gameState.cpu.leads, ...newGuessLeads]
+        }
+        // if( !gameState.cpu.potentialGuesses.length && !gameState.cpu.huntMode ){
+        //     // generate NextGuess Leads ... 
+        //     let aroundHitGuesses = cpuNextPotentialGuesses( guess );
+        //     gameState.cpu.potentialGuesses.push(...aroundHitGuesses); // = [...gameState.cpu.leads, ...newGuessLeads]
+        // } else {
+        //     newPotentialGuessIfHit(guess);
+        //     if( !huntDirection ){
+        //         // see if there's a hunt-pattern
+        //         gameState.cpu.huntMode = cpuCheckProximityHits(guess);
+        //         gameState.cpu.huntGuess = guess;
+        //     }
+        // }
         // if hit, and no prior leads 
         //cpuNextGuessAroundHit()
     }
@@ -623,15 +591,29 @@ function cpuNextGuess(){
             gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
             return huntPotentialGuesses[randomGuessIdx]
         }
-        // else{
-        //     gameState.cpu.huntMode = "";
-        //     gameState.cpu.huntGuess = null;
-        //     const randomGuessIdx = Math.floor(Math.random()*(huntPotentialGuesses.length));
-        //     gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
-        //     return huntPotentialGuesses[randomGuessIdx]
-        // }   
-        // no more leads, give up, and turn huntmode off.
-        gameState.cpu.huntMode = false;
+        else{
+            gameState.cpu.huntMode = "";
+            gameState.cpu.huntGuess = null;
+            console.log("HuntPotGuesses: ", huntPotentialGuesses)
+            let LastHuntedElShip;
+            const randomGuessIdx = Math.floor(Math.random()*(huntPotentialGuesses.length));
+            console.log("huntPotentialGuesses[randomGuessIdx]: ", huntPotentialGuesses[randomGuessIdx])
+            let lastHuntedEl = document.querySelector(`#_${huntPotentialGuesses[randomGuessIdx]}`)
+            console.log("LastHuntedEl: ", lastHuntedEl)
+            gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
+            for (i=0;i<shipClasses.length;i++){
+                if (lastHuntedEl.classList.contains(shipClasses[i])){
+                    LastHuntedElShip = shipClasses[i];
+                    console.log("LastHuntedElShip: ", LastHuntedElShip)
+                    if (gameState.player[`${shipClasses[i]}Hp`]===1){
+                        console.log("wiping is occuring")
+                        gameState.cpu.potentialGuesses = [];
+                        gameState.cpu.leads = [];
+                    }
+                }
+            }          
+            return huntPotentialGuesses[randomGuessIdx]
+        }
     }
 
     if ( gameState.cpu.potentialGuesses.length>0 ){
@@ -651,182 +633,3 @@ function cpuNextGuess(){
     } while( gameState.cpu.guesses.includes(guess) );
     return guess;
 }
-
-//     let guessEl = document.querySelector(`#_${guess}`)
-//     let guessId = guessEl.id;
-
-//     // generate our nextGuess AI guidelines
-//     if (!gameState.cpu.guesses.includes(guess)){
-//         let tempArr = guess.toString().split("");
-//         let tempGridEl;
-//         tempArr.length===1?
-//         tempGridEl = gameState.player.grid[0][parseInt(tempArr[0])]:
-//         tempGridEl = gameState.player.grid[parseInt(tempArr[0])][parseInt(tempArr[1])];
-//         if (tempGridEl===0){
-//             tempArr.length===1?
-//             gameState.cpu.leads.push([0,parseInt(tempArr[0])]):
-//             gameState.cpu.leads.push([parseInt(tempArr[0]),parseInt(tempArr[1])]);
-//             shipHit = true;  
-//             //below may not be necessary     
-//             if (!chooseRandom){
-//                 console.log("!!Choose random in while loop triggered (unexpected)!!")
-//                 chooseRandom = Math.floor(Math.random()*(gameState.cpu.potentialGuesses.length));
-//             }  
-//             // if (gameState.cpu.potentialGuesses[0]){
-//             //         if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'vertical'&&
-//             //     gameState.cpu.potentialGuesses[chooseRandom][2] === 'up'&&
-//             //     !gameState.cpu.guesses.includes(guess)){
-//             //         gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//             //         gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess-10}`), "vertical", 'up'])
-//             //     }
-//             //     else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'vertical'&&
-//             //     gameState.cpu.potentialGuesses[chooseRandom][2] === 'down'&&
-//             //     !gameState.cpu.guesses.includes(guess)){
-//             //         gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//             //         gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess+10}`), "vertical", 'down'])
-//             //     }
-//             //     else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'horizontal'&&
-//             //     gameState.cpu.potentialGuesses[chooseRandom][2] === 'right'&&
-//             //     !gameState.cpu.guesses.includes(guess)){
-//             //         gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//             //         gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess+1}`), "horizontal", 'right'])
-                    
-//             //     }
-//             //     else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'horizontal'&&
-//             //     gameState.cpu.potentialGuesses[chooseRandom][2] === 'left'&&
-//             //     !gameState.cpu.guesses.includes(guess)){
-//             //         gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//             //         gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess-1}`), "horizontal", 'left'])
-//             //     }
-//             // }       
-//             // if (!gameState.cpu.potentialGuesses[0]){
-//             //     settingPGs = true;
-//             //     let elAbove;
-//             //     let elRight;
-//             //     let elBelow;
-//             //     let elLeft;
-//             //     let potentialsArr = [];
-//             //     if (!gameState.cpu.guesses.includes(guess-10) && 0<=(guess-10)<=99){
-//             //         elAbove = [document.querySelector(`#_${guess-10}`), "vertical", 'up'];
-//             //         potentialsArr.push(elAbove);
-//             //     }
-//             //     if (!gameState.cpu.guesses.includes(guess+1) && 0<=(guess+1)<=99){
-//             //         elRight = [document.querySelector(`#_${guess+1}`), "horizontal", 'right'];
-//             //         potentialsArr.push(elRight);
-//             //     }
-//             //     if (!gameState.cpu.guesses.includes(guess+10) && 0<=(guess+10)<=99){
-//             //         elBelow = [document.querySelector(`#_${guess+10}`), 'vertical', 'down'];
-//             //         potentialsArr.push(elBelow);
-//             //     }
-//             //     if (!gameState.cpu.guesses.includes(guess-1) && 0<=(guess-1)<=99){
-//             //         elLeft = [document.querySelector(`#_${guess-1}`), 'horizontal', 'left'];    
-//             //         potentialsArr.push(elLeft);
-//             //     }
-//             //     for (let i=0;i<potentialsArr.length;i++){
-//             //         if((guessId.substr(-1)==0&&potentialsArr[i][0].id.substr(-1)==9)||
-//             //         (guessId.substr(-1)==9&&potentialsArr[i][0].id.substr(-1)==0)){
-//             //             potentialsArr.splice(i,1);
-//             //         }
-//             //     }
-//             // }
-//             AIGuesser(guess, guessId, chosenGuess, gameState, chooseRandom);
-            
-//             if ((guessEl.classList.contains('destroyer')&&gameState.player.destroyerHp===1)||
-//             (guessEl.classList.contains('submarine')&&gameState.player.submarineHp===1)||
-//             (guessEl.classList.contains('cruiser')&&gameState.player.cruiserHp===1)||
-//             (guessEl.classList.contains('battleship')&&gameState.player.battleshipHp===1)||
-//             (guessEl.classList.contains('carrier')&&gameState.player.carrierHp===1)){
-//                 gameState.cpu.potentialGuesses = [];
-//                 gameState.cpu.leads = [];
-//             }
-//         }
-//         if (!settingPGs&&gameState.cpu.leads[0]){
-//             console.log("chosen guess = ", chosenGuess);
-//             console.log("Before chosen guess splice: ", gameState.cpu.potentialGuesses.indexOf(chosenGuess))
-//             gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(chosenGuess),1);
-//             console.log("resulting potential guesses : ", [...gameState.cpu.potentialGuesses])
-
-//         }
-//         guessValid = true;
-//         gameState.cpu.guesses.push(guess);
-//         return guess;   
-//     }
-
-
-
-
-// function AIGuesser(guess, guessId, chosenGuess, gameState, chooseRandom){
-//     if (gameState.cpu.potentialGuesses[0]){
-//         chosenGuessDirection = gameState.cpu.potentialGuesses[chooseRandom][1];
-//        if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'vertical'&&
-//             gameState.cpu.potentialGuesses[chooseRandom][2] === 'up'&&
-//             !gameState.cpu.guesses.includes(guess)){
-//                 gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//                 gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess-10}`), "vertical", 'up'])
-//             }
-//         else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'vertical'&&
-//             gameState.cpu.potentialGuesses[chooseRandom][2] === 'down'&&
-//             !gameState.cpu.guesses.includes(guess)){
-//                 gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//                 gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess+10}`), "vertical", 'down'])
-//             }
-//         else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'horizontal'&&
-//             gameState.cpu.potentialGuesses[chooseRandom][2] === 'right'&&
-//             !gameState.cpu.guesses.includes(guess)){
-//                 gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//                 gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess+1}`), "horizontal", 'right'])
-                
-//             }
-//         else if (gameState.cpu.potentialGuesses[chooseRandom][1] === 'horizontal'&&
-//             gameState.cpu.potentialGuesses[chooseRandom][2] === 'left'&&
-//             !gameState.cpu.guesses.includes(guess)){
-//                 gameState.cpu.potentialGuesses = gameState.cpu.potentialGuesses.filter(x=>x[1]===chosenGuessDirection);
-//                 gameState.cpu.potentialGuesses.push([document.querySelector(`#_${guess-1}`), "horizontal", 'left'])
-//             }
-//         console.log("Updated guesses: ", {...gameState.cpu.potentialGuesses})
-
-//     }       
-//     if (!gameState.cpu.potentialGuesses[0]){
-//         settingPGs = true;
-//         let elAbove;
-//         let elRight;
-//         let elBelow;
-//         let elLeft;
-//         let potentialsArr = [];
-//         if (!gameState.cpu.guesses.includes(guess-10) && 0<=(guess-10)<=99){
-//             elAbove = [document.querySelector(`#_${guess-10}`), "vertical", 'up'];
-//             potentialsArr.push(elAbove);
-//         }
-//         if (!gameState.cpu.guesses.includes(guess+1) && 0<=(guess+1)<=99){
-//             elRight = [document.querySelector(`#_${guess+1}`), "horizontal", 'right'];
-//             potentialsArr.push(elRight);
-//         }
-//         if (!gameState.cpu.guesses.includes(guess+10) && 0<=(guess+10)<=99){
-//             elBelow = [document.querySelector(`#_${guess+10}`), 'vertical', 'down'];
-//             potentialsArr.push(elBelow);
-//         }
-//         console.log(`Does guess include left element: ${!gameState.cpu.guesses.includes(guess-1)} && Guess is between 0-99: ${0<=(guess-1)<=99}`)
-//         if (!gameState.cpu.guesses.includes(guess-1) && 0<=(guess-1)<=99){
-//             elLeft = [document.querySelector(`#_${guess-1}`), 'horizontal', 'left'];
-//             console.log("  -", elLeft);    
-//             potentialsArr.push(elLeft);
-//         }
-//         console.log("before prune: ", [...potentialsArr]);
-//         for (let i=0;i<potentialsArr.length;i++){
-//             let potentialId = potentialsArr[i][0].id.substr(-1);
-//             console.log(" -", potentialId);
-//             if((guessId.substr(-1)==0&&potentialId==9)||
-//             (guessId.substr(-1)==9&&potentialId==0)){
-//                 console.log("Removed: ", potentialsArr[i]);
-//                 //potentialsArr.splice(i,1);
-                
-//             }
-//         }
-//         console.log("Initial Guesses added: ", [...potentialsArr])
-//         gameState.cpu.potentialGuesses = [...gameState.cpu.potentialGuesses, ...potentialsArr]
-//         console.log("Total potential guesses: ", [...gameState.cpu.potentialGuesses])
-//         chosenGuess = gameState.cpu.potentialGuesses[chooseRandom];
-//         // chosenGuessDirection = gameState.cpu.potentialGuesses[chooseRandom][1];
-//         return chosenGuess;
-//     }
-// }
