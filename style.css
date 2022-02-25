@@ -89,12 +89,13 @@ body{
     .menu {
       position: absolute;
       top: 0;
-      margin-top: 50px;
+      margin-top: 60px;
       left: 0;
       flex-direction: column;
       width: 100%;
       justify-content: center;
       align-items: center;
+      z-index: 2;
     }
     #menu-toggle ~ .menu li {
       height: 0;
@@ -121,6 +122,75 @@ body{
     .menu > li:not(:last-child) {
       border-bottom: 1px solid #444;
     }
+}
+#linkedIn{
+    text-decoration: none;
+    color: black;
+}
+#rules{
+    display: block;
+    cursor: pointer;
+}
+#rulesBox #overlay{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2;
+    display: none;
+}
+#rulesBox.active #overlay{
+    display: block;
+}
+#rulesTitle{
+    font-size: 40px;
+}
+#lineBreak::after{
+    content: "\a";
+    white-space: pre;
+}
+#rulesBox{
+    font-family: monospace;
+}
+#rulesBox #rulesBoxContent{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) scale(0);
+    background: #fff;
+    width: 450px;
+    height: 320px;
+    z-index: 3;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+#rulesBox.active #rulesBoxContent{
+    transition:all 300ms ease-in-out;
+    transform: translate(-50%,-50%) scale(1);
+}
+#rulesBox #rulesBoxExit{
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    width: 30px;
+    height: 30px;
+    background: #222;
+    color: #fff;
+    font-size: 25px;
+    font-weight: 600;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    cursor: pointer;
+}
+#rulesbody{
+    font-size: 15px;
+}
+#rulesSub{
+    font-size: 24px;;
 }
 h1{
     text-align: center;
@@ -175,13 +245,43 @@ h1{
     background-color: var(--mainEls);
     cursor: pointer;
 }
+#sfxText{
+    position: absolute;
+}
+.line{
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M1 0 L0 1 L99 100 L100 99' fill='black' /><path d='M0 99 L99 0 L100 1 L1 100' fill='black' /></svg>");
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-size: 300% 300%, auto;
+    width: 80%;
+    height: 80%;
+}
+#lineMusic{
+    display: none;
+}
+#lineSfx{
+    display: none;
+}
 
 /* GameBoards */
-#gameBoards{
+#gameBoardTitles{
     display: flex;
     justify-content: space-between;
     width: 70%;
     margin: 30px auto 0 auto;
+}
+.GBTitle{
+    display: block;
+    width: 318px;
+    text-align: center;
+    font-family: 'Bangers', cursive;
+    font-size: 30px;
+}
+#gameBoards{
+    display: flex;
+    justify-content: space-between;
+    width: 70%;
+    margin: 5px auto 0 auto;
 }
 @media(max-width: 500px){
     #gameBoards{

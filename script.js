@@ -89,31 +89,44 @@ const gameBoards = document.querySelector("#gameBoards");
 const sound = document.querySelector("#audioButton");
 const sfx = document.querySelector("#sfxButton");
 const replay = document.querySelector('#replayButton');
+const lineMusic = document.querySelector('#lineMusic');
+const lineSfx = document.querySelector('#lineSfx');
+const rules = document.querySelector('#rules');
+const body = document.querySelector('body');
+const rulesBox = document.querySelector('#rulesBox');
+const rulesBoxExit = document.querySelector('#rulesBoxExit');
 
 /*----- event listeners -----*/
 rotate.addEventListener("click", rotateShip);
 replay.addEventListener("click", restartGame)
 sound.addEventListener("click", playMusic);
 sfx.addEventListener("click", sfxToggleFunc);
+rules.addEventListener("click", rulesFunc)
+rulesBoxExit.addEventListener("click", rulesBoxExitFunc);
 
 /*----- functions -----*/
 
 /*-- Music and SFX --*/ 
 function playMusic(){
-    if (music.duration>0 && !music.paused)
+    if (music.duration>0 && !music.paused){
         music.pause();
+        lineMusic.style.display = 'block';
+    }
     else {
         music.play();
         music.loop = true;
+        lineMusic.style.display = 'none'
     }
 }
 function sfxToggleFunc(){
     sfxToggle===1?sfxToggle=0:sfxToggle=1;
     if (sfxToggle===0){
         sfxAmbientBoat.pause()
+        lineSfx.style.display = 'block';
     }
     if (sfxToggle===1 && allShipsPlaced){
         sfxAmbientBoat.play();
+        lineSfx.style.display = 'none'
     }
 }
 function playSfx(sfx){
@@ -130,6 +143,13 @@ function playSfx(sfx){
     }
 
 }
+function rulesFunc(){
+    rulesBox.classList.toggle("active");
+}
+function rulesBoxExitFunc(){
+    rulesBox.classList.toggle("active");
+}
+
 /*-- Initialize Game --*/  
 init();
 function whosFirst(){
@@ -441,10 +461,10 @@ function updateShipHp(guess, role){
     else 
         tempGridEl = document.querySelector(`#c${guess}`);
     ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
-        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
+        if ( tempGridEl.classList.contains(ship) && gsThis[`${ship}Hp`]!==1 ){
             gsThis[`${ship}Hp`]--;
         }
-         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
+         else if (tempGridEl.classList.contains(ship) && gsThis[`${ship}Hp`]==1){
             gsThis[`${ship}Hp`]--;
             if (gsThis === gameState.cpu){
                 const wholeShip = document.querySelectorAll(`.cpuShipEl.${ship}`)
@@ -454,10 +474,10 @@ function updateShipHp(guess, role){
             gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
         }
         })
-    if (gsThis.destroyerHp===0&&
-        gsThis.submarineHp===0&&
-        gsThis.cruiserHp===0&&
-        gsThis.battleshipHp===0&&
+    if (gsThis.destroyerHp===0 &&
+        gsThis.submarineHp===0 &&
+        gsThis.cruiserHp===0 &&
+        gsThis.battleshipHp===0 &&
         gsThis.carrierHp===0){
             gameInfo.innerText = `The ${gsOther.opponentName} has won!`
             winConditionMet = true;
@@ -469,7 +489,7 @@ function cpuTurn(){
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);
     let tempArr = tempGuess.toString().split("");
     placeGuess(tempArr, gameState.player, cpuGuessEl)
-    updateShipHp(tempGuess, "player")
+    // updateShipHp(tempGuess, "player")
 }
 function cpuNextPotentialGuesses( guess ){
     let newLeads = [];
@@ -526,7 +546,7 @@ function cpuGuess(){
 
     if( cpuCheckIfHit(guess) ){
         //
-        updateShipHp(guess, "cpu");
+        updateShipHp(guess, "player");
         //^
         gameState.cpu.leads.push(guess);
         if(gameState.cpu.potentialGuesses.length) {

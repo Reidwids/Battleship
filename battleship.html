@@ -22,21 +22,38 @@
           <div class='menu-button'></div>
         </label>
           <ul class="menu">
-            <li>Settings</li>
-            <li>About</li>
-            <li>My LinkedIn</li>
+            <li><a id='linkedIn' href="https://github.com/Reidwids/Battleship" target="_blank">Github</a></li>
+            <li id="rules">Rules</li>
+            <li><a id='linkedIn' href="https://www.linkedin.com/in/derek-reid-wilkinson-b20833228/" target="_blank">My LinkedIn</a></li>
           </ul>
         </section>
+        <div id="rulesBox">
+            <div id="overlay"></div>
+            <div id="rulesBoxContent">
+                <div id="rulesBoxExit">&times;</div>
+                <p id="rulesTitle">The Rules <br> <span id='lineBreak'>of Battleship</span></p>
+                <p id="rulesSub">How To Win</p>
+                <p id="rulesbody">Sink all of your opponents ships before they sink yours!</p>
+                <p id="rulesSub">How To Play</p>
+                <p id="rulesbody">Place all of your ships on the player board. When you're ready, start the game. Take turns guessing where you think the
+                    enemy has hidden their ships. Guess all of their ships first and you win the game!</p>
+            </div>
+        </div>
         <div id="audioButtons">
             <button id="audioButton">
                 <img id="audioImg" src="./Files/speaker.png">
-                <div class = "line"></div>
+                <div class = "line" id="lineMusic"></div>
             </button>
-            <button id="sfxButton">SFX
-                <div class = "line"></div>
+            <button id="sfxButton">
+                <div id=sfxText>SFX</div>
+                <div class = "line" id="lineSfx"></div>
             </button>
         </div>
-        <div id="gameBoards">  
+        <div id="gameBoardTitles">
+            <div class="GBTitle">Player</div>
+            <div class="GBTitle">Computer</div>  
+        </div>
+        <div id="gameBoards">
             <div id="GBPlayer"></div>
             <div id="GBCpu"></div>
         </div>
