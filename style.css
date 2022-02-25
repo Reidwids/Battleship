@@ -14,7 +14,7 @@ body{
     background-position: center; 
     background-repeat: no-repeat;
     background-size: cover;    
-    /* overflow: hidden; */
+    overflow: hidden; 
 }
 /* NavBar */
 .top-nav {
@@ -233,7 +233,9 @@ h1{
     justify-content: center;
     width: 100%;
     height: 100%;
-    background-color: rgb(182, 31, 31);
+    background-color: orange;
+    /* background-color: rgb(182, 31, 31); */
+    /* background-color: var(--mainEls); */
 }
 /* Ship Bay*/
 #shipBay{
@@ -310,12 +312,9 @@ h1{
     height: 8px;
 }
 /* Replay */
-#replayContainer{
-
-}
 #replayButton{
     display: none;
-    margin: 0 auto;
+    margin: 50px auto;
     border: none;
     color: white;
     width: 250px;
@@ -323,6 +322,7 @@ h1{
     font-family: monospace;
     height: 50px;
     border-radius: 5px;
+    cursor: pointer;
     background-color: rgb(182, 31, 31);
 }
 /* Title page design */

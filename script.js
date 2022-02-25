@@ -1,10 +1,5 @@
 /*----- constants -----*/
 const gameboardSize = [10,10];
-const destroyerSize = 2;
-const submarineSize = 3;
-const cruiserSize = 3;
-const battleshipSize = 4;
-const carrierSize = 5;
 /*Create limitations for ship placement*/
 const horizontalLimits = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,12,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93,4,14,24,34,44,54,64,74,84,94];
 const verticalLimits = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49];
@@ -64,10 +59,19 @@ let draggedShip;
 let draggedShipClass;
 let sfxToggle = 1;
 let winConditionMet = false;
-//FIX BELOW TO FALSE
-let allShipsPlaced = false;
-//FIX ABOVE TO FALSE
+let allShipsPlaced = true;
 let turn = Math.floor(Math.random()*2);
+const cpuShips = [2,3,3,4,5]
+const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
+const music = new Audio();
+const sfxAmbientBoat = new Audio();
+const sfxBell = new Audio();
+const sfxSplash = new Audio();
+music.src = "./Files/music.mp3";
+sfxBell.src = "./Files/bell.wav";
+sfxSplash.src = "./Files/splash.wav";
+sfxAmbientBoat.src = "./Files/ambient.wav";
+
 /*----- cached element references -----*/
 const GBPlayer = document.querySelector('#GBPlayer');
 const GBCpu = document.querySelector('#GBCpu');
@@ -78,8 +82,6 @@ const cruiser = [document.querySelector('.cruiser'), 3];
 const battleship = [document.querySelector('.battleship'), 4];
 const carrier = [document.querySelector('.carrier'), 5];
 const playerShips = [destroyer, submarine, cruiser, battleship, carrier];
-const cpuShips = [2,3,3,4,5]
-const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
 const rotate = document.querySelector("#rotateButton");
 const gameInfo = document.querySelector("#gameInfo");
 const shipBay = document.querySelector("#shipBay");
@@ -87,17 +89,16 @@ const gameBoards = document.querySelector("#gameBoards");
 const sound = document.querySelector("#audioButton");
 const sfx = document.querySelector("#sfxButton");
 const replay = document.querySelector('#replayButton');
-const music = new Audio();
-const sfxAmbientBoat = new Audio();
-const sfxBell = new Audio();
-const sfxSplash = new Audio();
-music.src = "./Files/music.mp3";
-sfxBell.src = "./Files/bell.wav";
-sfxSplash.src = "./Files/splash.wav";
-sfxAmbientBoat.src = "./Files/ambient.wav";
 
+/*----- event listeners -----*/
+rotate.addEventListener("click", rotateShip);
+replay.addEventListener("click", restartGame)
 sound.addEventListener("click", playMusic);
 sfx.addEventListener("click", sfxToggleFunc);
+
+/*----- functions -----*/
+
+/*-- Music and SFX --*/ 
 function playMusic(){
     if (music.duration>0 && !music.paused)
         music.pause();
@@ -129,14 +130,7 @@ function playSfx(sfx){
     }
 
 }
-
-/*----- event listeners -----*/
-rotate.addEventListener("click", rotateShip);
-replay.addEventListener("click", restartGame)
-
-/*----- functions -----*/
-
-/*- Initialize game -*/ 
+/*-- Initialize Game --*/  
 init();
 function whosFirst(){
     turn===1?turn--:turn++;
@@ -148,87 +142,6 @@ function init(){
     createCpuShips(...cpuShips);
     music.play();
     music.volume = 0.6;
-}
-function restartGame(){
-    init();
-}
-/*-Render Game-*/
-function render(e){
-    if(allShipsPlaced===true&&winConditionMet===false){
-        if(!e.target.hasChildNodes() && !e.target.classList.contains("guess")){
-            let selectedCpuId = parseInt(e.target.id.substr(-2))?
-            e.target.id.substr(-2):
-            e.target.id.substr(-1);
-            let tempArr = selectedCpuId.split("");
-            placeGuess(tempArr, gameState.cpu, e.target)
-            //e.target pass as guess instead
-            updateShipHp(selectedCpuId, "cpu");
-            if (winConditionMet===true){
-                replay.style.display = 'block';
-                replay.style.margin = '10px';
-            }
-            setTimeout(cpuTurn, 500);
-        }
-    }
-}
-function placeGuess(tempArr, gameStateWithPlayer, target){
-    if (tempArr.length === 1){
-        if (gameStateWithPlayer.grid[0][parseInt(tempArr[0])]===0){
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'hit'
-            target.appendChild(newEl);
-        }
-        else {
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'miss'
-            target.appendChild(newEl);
-        }
-    }
-    else {
-        if (gameStateWithPlayer.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]===0){
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'hit';
-            target.appendChild(newEl);
-        }
-        else {
-            const newEl = document.createElement('div');
-            newEl.className = 'guess';
-            newEl.id = 'miss';
-            target.appendChild(newEl);
-        }
-    }
-}
-function updateShipHp(guess, role){
-    const gsThis = role=='player' ? gameState.player : gameState.cpu;
-    const gsOther = role=='player' ? gameState.cpu : gameState.player;
-    let tempGridEl;
-    if (gsThis===gameState.player)
-        tempGridEl = document.querySelector(`#_${guess}`);
-    else 
-        tempGridEl = document.querySelector(`#c${guess}`);
-    ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
-        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
-            console.log(ship)
-            console.log(gsThis[`${ship}Hp`])
-            console.log(tempGridEl.classList.contains(ship))
-            gsThis[`${ship}Hp`]--;
-        }
-         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
-            gsThis[`${ship}Hp`]--;
-            gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
-        }
-        })
-    if (gsThis.destroyerHp===0&&
-        gsThis.submarineHp===0&&
-        gsThis.cruiserHp===0&&
-        gsThis.battleshipHp===0&&
-        gsThis.carrierHp===0){
-            gameInfo.innerText = `The ${gsOther.opponentName} has won!`
-            winConditionMet = true;
-        }
 }
 /*-Initialization Functions-*/
 function createGameboards(){
@@ -245,7 +158,6 @@ function createGameboards(){
     const GBCpuEl = document.querySelectorAll('.GBCpuEl');
     GBCpuEl.forEach(x=>x.addEventListener('click', render))
 }
-
 function createPlayerShips(...args){
     for (i=0;i<args.length;i++){
         for (let j=0;j<args[i][1];j++){
@@ -263,7 +175,6 @@ function createPlayerShips(...args){
         args[i][0].style.margin = "5px 0 0 5px";
     }
 }
-
 /*-Ship Placement-*/
 function rotateShip(){
     shipOrientation==='horizontal'?shipOrientation='vertical':shipOrientation='horizontal';
@@ -283,8 +194,7 @@ function rotateShip(){
         }
     }
 }
-
-/*Drag and drop*/
+/*-Drag and drop-*/
 playerShips.forEach(ship=>{
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('mousedown', (e)=> {
@@ -303,7 +213,6 @@ function dragStart(e) {
     draggedShip = e.target;
     draggedShipClass = e.target.className;
     shipLength = draggedShip.children.length;
-    //setTimeout(()=>{draggedShip.className = 'hide'}, 10);
 }
 function dragEnter(e) {
     e.preventDefault()
@@ -359,7 +268,6 @@ function dragDrop(e) {
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl-i].classList.add(`${draggedShipClass}`)
             let tempArr = (shipDropSquareIndex+spaceFromLastEl-i).toString().split("");
             if (tempArr.length === 1){
-                //change to 1D
                 gameState.player.grid[0][parseInt(tempArr[0])]--;
             }
             else {
@@ -374,7 +282,6 @@ function dragDrop(e) {
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl*10-i*10].classList.add(`${draggedShipClass}`);
             let tempArr = (shipDropSquareIndex+spaceFromLastEl*10-i*10).toString().split("");
             if (tempArr.length === 1){
-                //change to 1D
                 gameState.player.grid[0][parseInt(tempArr[0])]--;
             }
             else {
@@ -409,8 +316,8 @@ function deleteShipBay(){
     playSfx("ambient");
     sfxAmbientBoat.loop = true;
     playSfx("bell");
-    gameBoards.style.marginTop = "15%"
 }
+
 /*Computer Generated Ships*/
 function createCpuShips(...args){
     for (let i=0;i<args.length;i++){
@@ -436,7 +343,6 @@ function createCpuShips(...args){
                         document.getElementById(`c${randomBoardIndex-j}`).classList.add(`${shipClasses[i]}`);
                         let tempArr = (randomBoardIndex-j).toString().split("");
                             if (tempArr.length === 1){
-                                //change to 1D
                                 gameState.cpu.grid[0][parseInt(tempArr[0])]--;
                             }
                             else {
@@ -462,16 +368,11 @@ function createCpuShips(...args){
                         document.getElementById(`c${randomBoardIndex-j*10}`).classList.add(`${shipClasses[i]}`);
                         let tempArr = (randomBoardIndex-j*10).toString().split("");
                             if (tempArr.length === 1){
-                                //change to 1D
                                 gameState.cpu.grid[0][parseInt(tempArr[0])]--;
                             }
                             else {
                                 gameState.cpu.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]--
                             }
-                        // const newEl = document.createElement('div');
-                        // newEl.className = 'cpuShipEl';
-                        // newEl.id = `cpuShipEl-${args[i]-j}`;
-                        // document.getElementById(`c${randomBoardIndex-j}`).appendChild(newEl);
                         randomNumberValid = true;
                     }
                 } 
@@ -480,6 +381,88 @@ function createCpuShips(...args){
     }
 }
 
+/*-- Render Game --*/
+function render(e){
+    if(allShipsPlaced===true&&winConditionMet===false){
+        if(!e.target.hasChildNodes() && !e.target.classList.contains("guess")){
+            let selectedCpuId = parseInt(e.target.id.substr(-2))?
+            e.target.id.substr(-2):
+            e.target.id.substr(-1);
+            let tempArr = selectedCpuId.split("");
+            placeGuess(tempArr, gameState.cpu, e.target)
+            updateShipHp(selectedCpuId, "cpu");
+            if (winConditionMet===true){
+                replay.style.display = 'block';
+            }
+            cpuTurn();
+        }
+    }
+}
+/*-- Game Functions --*/
+function restartGame(){
+    window.location.reload();
+}
+function placeGuess(tempArr, gameStateWithPlayer, target){
+    if (tempArr.length === 1){
+        if (gameStateWithPlayer.grid[0][parseInt(tempArr[0])]===0){
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'hit'
+            target.appendChild(newEl);
+        }
+        else {
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'miss'
+            target.appendChild(newEl);
+        }
+    }
+    else {
+        if (gameStateWithPlayer.grid[parseInt(tempArr[0])][parseInt(tempArr[1])]===0){
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'hit';
+            target.appendChild(newEl);
+        }
+        else {
+            const newEl = document.createElement('div');
+            newEl.className = 'guess';
+            newEl.id = 'miss';
+            target.appendChild(newEl);
+        }
+    }
+}
+function updateShipHp(guess, role){
+    const gsThis = role=='player' ? gameState.player : gameState.cpu;
+    const gsOther = role=='player' ? gameState.cpu : gameState.player;
+    let tempGridEl;
+    if (gsThis===gameState.player)
+        tempGridEl = document.querySelector(`#_${guess}`);
+    else 
+        tempGridEl = document.querySelector(`#c${guess}`);
+    ['destroyer','cruiser','submarine','battleship','carrier'].forEach( ship=>{
+        if ( tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]!==1 ){
+            gsThis[`${ship}Hp`]--;
+        }
+         else if (tempGridEl.classList.contains(ship)&&gsThis[`${ship}Hp`]==1){
+            gsThis[`${ship}Hp`]--;
+            if (gsThis === gameState.cpu){
+                const wholeShip = document.querySelectorAll(`.cpuShipEl.${ship}`)
+                wholeShip.forEach(x=>x.style.backgroundColor = 'rgb(182, 31, 31)');
+                console.log(wholeShip)
+            }
+            gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
+        }
+        })
+    if (gsThis.destroyerHp===0&&
+        gsThis.submarineHp===0&&
+        gsThis.cruiserHp===0&&
+        gsThis.battleshipHp===0&&
+        gsThis.carrierHp===0){
+            gameInfo.innerText = `The ${gsOther.opponentName} has won!`
+            winConditionMet = true;
+        }
+}
 
 function cpuTurn(){
     let tempGuess = cpuGuess()
@@ -600,19 +583,19 @@ function cpuNextGuess(){
         else{
             gameState.cpu.huntMode = "";
             gameState.cpu.huntGuess = null;
-            console.log("HuntPotGuesses: ", huntPotentialGuesses)
+            // console.log("HuntPotGuesses: ", huntPotentialGuesses)
             let LastHuntedElShip;
             const randomGuessIdx = Math.floor(Math.random()*(huntPotentialGuesses.length));
-            console.log("huntPotentialGuesses[randomGuessIdx]: ", huntPotentialGuesses[randomGuessIdx])
+            // console.log("huntPotentialGuesses[randomGuessIdx]: ", huntPotentialGuesses[randomGuessIdx])
             let lastHuntedEl = document.querySelector(`#_${huntPotentialGuesses[randomGuessIdx]}`)
-            console.log("LastHuntedEl: ", lastHuntedEl)
+            // console.log("LastHuntedEl: ", lastHuntedEl)
             gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
             for (i=0;i<shipClasses.length;i++){
                 if (lastHuntedEl.classList.contains(shipClasses[i])){
                     LastHuntedElShip = shipClasses[i];
-                    console.log("LastHuntedElShip: ", LastHuntedElShip)
+                    // console.log("LastHuntedElShip: ", LastHuntedElShip)
                     if (gameState.player[`${shipClasses[i]}Hp`]===1){
-                        console.log("wiping is occuring")
+                        // console.log("wiping is occuring")
                         gameState.cpu.potentialGuesses = [];
                         gameState.cpu.leads = [];
                     }
