@@ -18,6 +18,7 @@ body{
     overflow: hidden; 
     min-width:1000px;
 }
+
 /* NavBar */
 .top-nav {
     display: flex;
@@ -54,7 +55,6 @@ h1{
 }
 
 /* Rules */
-
 #rules{
     display: block;
     cursor: pointer;
@@ -260,16 +260,14 @@ h1{
     background-color: var(--mainEls);
     background-color: orange;
 }
+
 /* Ship Bay*/
 #shipBay{
-    /* display: flex;
-    flex-wrap: wrap; */
     position: relative;
     font-family: 'Bangers', cursive;
     width: 350px;
     height: 300px;
     margin: 40px auto 0 auto;
-
 }
 #shipBayLabel{
     display: block;
@@ -334,6 +332,7 @@ h1{
     width: 8px;
     height: 8px;
 }
+
 /* Replay */
 #replayButton{
     display: none;
@@ -353,7 +352,6 @@ h1{
     animation: lightwaves 2s infinite;
     position: relative;
 }
-
 @keyframes lightwaves {
     0%,100% { transform: translate(0,0); }
     25%     { transform: translate(5px,5px); transform: scale(1.05); }
@@ -364,7 +362,6 @@ h1{
 .DarkWaves {
 animation: darkwaves 3.8s infinite;
 }
-
 svg{
     position: absolute;
     bottom: 0px;
@@ -380,7 +377,6 @@ svg{
 .WhiteWaves {
 animation: whitewaves 4s alternate ease infinite;
 }
-
 @keyframes whitewaves {
     0% { transform: translate(0,25px); }
     100%     { transform: translate(25px,35px); }
@@ -406,6 +402,7 @@ animation: whitewaves 4s alternate ease infinite;
     z-index: -1;
     overflow: hidden;
 }
+/* Title */
 .title{
     margin: 0 auto;
     font-size: 100px;
@@ -413,6 +410,7 @@ animation: whitewaves 4s alternate ease infinite;
     position: relative;
     z-index: 1;
 }
+/* Clouds */
 #allClouds{
     z-index: -1;
 }
@@ -483,6 +481,7 @@ animation: whitewaves 4s alternate ease infinite;
     0%,100% { transform: translate(0,0); }
     50%     { transform: translate(0,15px); }
 }
+/* Start Game */
 #pageLink{
     display: block;
     text-decoration: none;
