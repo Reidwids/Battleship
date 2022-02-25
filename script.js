@@ -1,8 +1,17 @@
 /*----- constants -----*/
 const gameboardSize = [10,10];
-/*Create limitations for ship placement*/
 const horizontalLimits = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,12,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93,4,14,24,34,44,54,64,74,84,94];
 const verticalLimits = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49];
+const cpuShips = [2,3,3,4,5]
+const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
+const music = new Audio();
+const sfxAmbientBoat = new Audio();
+const sfxBell = new Audio();
+const sfxSplash = new Audio();
+music.src = "./Files/music.mp3";
+sfxBell.src = "./Files/bell.wav";
+sfxSplash.src = "./Files/splash.wav";
+sfxAmbientBoat.src = "./Files/ambient.wav";
 
 /*----- app's state (variables) -----*/
 const gameState = {
@@ -48,11 +57,11 @@ const gameState = {
         huntMode: "",
     }
 }
-
 let shipOrientation = 'horizontal';
 let noShipHere = [];
 let randomNumberValid;
 let validatePosition = [];
+let turn = Math.floor(Math.random()*2);
 let shipLength;
 let selectedShipElId;
 let draggedShip;
@@ -60,17 +69,6 @@ let draggedShipClass;
 let sfxToggle = 1;
 let winConditionMet = false;
 let allShipsPlaced = false;
-let turn = Math.floor(Math.random()*2);
-const cpuShips = [2,3,3,4,5]
-const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
-const music = new Audio();
-const sfxAmbientBoat = new Audio();
-const sfxBell = new Audio();
-const sfxSplash = new Audio();
-music.src = "./Files/music.mp3";
-sfxBell.src = "./Files/bell.wav";
-sfxSplash.src = "./Files/splash.wav";
-sfxAmbientBoat.src = "./Files/ambient.wav";
 
 /*----- cached element references -----*/
 const GBPlayer = document.querySelector('#GBPlayer');
@@ -163,6 +161,7 @@ function init(){
     music.play();
     music.volume = 0.6;
 }
+
 /*-Initialization Functions-*/
 function createGameboards(){
     for (i=0;i<gameboardSize[0]*gameboardSize[1];i++){
@@ -195,6 +194,7 @@ function createPlayerShips(...args){
         args[i][0].style.margin = "5px 0 0 5px";
     }
 }
+
 /*-Ship Placement-*/
 function rotateShip(){
     shipOrientation==='horizontal'?shipOrientation='vertical':shipOrientation='horizontal';
@@ -214,7 +214,8 @@ function rotateShip(){
         }
     }
 }
-/*-- Drag and drop --*/
+
+/*-Drag and drop-*/
 playerShips.forEach(ship=>{
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('mousedown', (e)=> {
@@ -421,6 +422,7 @@ function render(e){
         }
     }
 }
+
 /*-- Game Functions --*/
 function restartGame(){
     window.location.reload();
@@ -485,7 +487,7 @@ function updateShipHp(guess, role){
 }
 
 
-/*Cpu AI*/
+/*-Cpu AI-*/
 function cpuTurn(){
     let tempGuess = cpuGuess()
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);
