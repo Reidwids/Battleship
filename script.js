@@ -214,7 +214,7 @@ function rotateShip(){
         }
     }
 }
-/*-Drag and drop-*/
+/*-- Drag and drop --*/
 playerShips.forEach(ship=>{
     ship[0].addEventListener('dragstart', dragStart);
     ship[0].addEventListener('mousedown', (e)=> {
@@ -338,7 +338,7 @@ function deleteShipBay(){
     }
 }
 
-/*Computer Generated Ships*/
+/*-Computer Generated Ships-*/
 function createCpuShips(...args){
     for (let i=0;i<args.length;i++){
         randomNumberValid = false;
@@ -491,12 +491,10 @@ function cpuTurn(){
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);
     let tempArr = tempGuess.toString().split("");
     placeGuess(tempArr, gameState.player, cpuGuessEl)
-    // updateShipHp(tempGuess, "player")
 }
 function cpuNextPotentialGuesses( guess ){
     let newLeads = [];
     const top = guess-10;
-    // if this point exists & is not already a hit, we keep it.
     if( top>=0 && top<=99 && !gameState.cpu.guesses.includes(top) )
         newLeads.push( top );
 
@@ -567,15 +565,12 @@ function cpuGuess(){
 
 function cpuNextGuess(){
     if( gameState.cpu.huntMode ){
-        // we are in hunt-mode so guessing along path of the 'huntGuess'
         let huntPotentialGuesses = [];
         if( gameState.cpu.huntMode==='v' ){
-            // take the ones-digit
             const guessNum = gameState.cpu.huntGuess%10
             huntPotentialGuesses = gameState.cpu.potentialGuesses.filter( num=>num%10===guessNum );
             
         } else {
-            // take the 10/s digit (which is horizontal placement)
             const guessNum = Math.floor(Number(gameState.cpu.huntGuess)/10);
             huntPotentialGuesses = gameState.cpu.potentialGuesses.filter( num=>Math.floor(Number(num)/10)===guessNum );
         }
@@ -587,19 +582,14 @@ function cpuNextGuess(){
         else{
             gameState.cpu.huntMode = "";
             gameState.cpu.huntGuess = null;
-            // console.log("HuntPotGuesses: ", huntPotentialGuesses)
             let LastHuntedElShip;
             const randomGuessIdx = Math.floor(Math.random()*(huntPotentialGuesses.length));
-            // console.log("huntPotentialGuesses[randomGuessIdx]: ", huntPotentialGuesses[randomGuessIdx])
             let lastHuntedEl = document.querySelector(`#_${huntPotentialGuesses[randomGuessIdx]}`)
-            // console.log("LastHuntedEl: ", lastHuntedEl)
             gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
             for (i=0;i<shipClasses.length;i++){
                 if (lastHuntedEl.classList.contains(shipClasses[i])){
                     LastHuntedElShip = shipClasses[i];
-                    // console.log("LastHuntedElShip: ", LastHuntedElShip)
                     if (gameState.player[`${shipClasses[i]}Hp`]===1){
-                        // console.log("wiping is occuring")
                         gameState.cpu.potentialGuesses = [];
                         gameState.cpu.leads = [];
                     }
@@ -610,18 +600,14 @@ function cpuNextGuess(){
     }
 
     if ( gameState.cpu.potentialGuesses.length>0 ){
-        // walk through potential leads
         const randomGuessIdx = Math.floor(Math.random()*(gameState.cpu.potentialGuesses.length));
-        // guessId = gameState.cpu.potentialGuesses[chooseRandom][0].id;
         let chosenGuess = gameState.cpu.potentialGuesses[randomGuessIdx]
         gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(chosenGuess),1); 
         return chosenGuess;
     }
     let guess;
     do {
-        // guess new lead placement
         guess = Math.floor(Math.random()*100);
-        // if the guess is already in our guess set, let's clear it.
     } while( gameState.cpu.guesses.includes(guess) );
     return guess;
 }
