@@ -59,7 +59,7 @@ let draggedShip;
 let draggedShipClass;
 let sfxToggle = 1;
 let winConditionMet = false;
-let allShipsPlaced = true;
+let allShipsPlaced = false;
 let turn = Math.floor(Math.random()*2);
 const cpuShips = [2,3,3,4,5]
 const shipClasses = ['destroyer', 'cruiser', 'submarine', 'battleship', 'carrier'];
@@ -325,9 +325,6 @@ function dragDrop(e) {
         rotate.style.color = "white";
         rotate.style.backgroundColor = "rgb(182, 31, 31)";
         rotate.addEventListener("click", deleteShipBay);
-        if (whosFirst()==='cpu'&&allShipsPlaced){
-            cpuTurn();
-        }
     }
 }
 function deleteShipBay(){
@@ -336,6 +333,9 @@ function deleteShipBay(){
     playSfx("ambient");
     sfxAmbientBoat.loop = true;
     playSfx("bell");
+    if (whosFirst()==='cpu'&&allShipsPlaced){
+        cpuTurn();
+    }
 }
 
 /*Computer Generated Ships*/
