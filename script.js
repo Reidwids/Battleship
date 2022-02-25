@@ -182,7 +182,7 @@ function createPlayerShips(...args){
     for (i=0;i<args.length;i++){
         for (let j=0;j<args[i][1];j++){
             const newEl = document.createElement('div');
-            newEl.className = 'shipEl';
+            newEl.className = 'playerShipEl';
             newEl.id = `playerShipEl-${j}`;
             newEl.classList.add(`${shipClasses[i]}`)
             args[i][0].appendChild(newEl);
@@ -247,7 +247,7 @@ function dragEnter(e) {
     noShipHere = [];
     if (shipOrientation === 'horizontal'){
         for (i=0;i<shipLength;i++){
-            if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl-i].classList.contains('shipEl')){
+            if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl-i].classList.contains('playerShipEl')){
                 noShipHere.push(false);
             } 
             else noShipHere.push(true);
@@ -257,7 +257,7 @@ function dragEnter(e) {
     if (shipOrientation === 'vertical'){
         for (i=0;i<shipLength;i++){
             try{
-                if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl*10-i*10].classList.contains('shipEl')){
+                if(GBPLayerEl[shipEnterSquareIndex+spaceFromLastEl*10-i*10].classList.contains('playerShipEl')){
                     noShipHere.push(false);
                 } 
                 else noShipHere.push(true);
@@ -284,7 +284,7 @@ function dragDrop(e) {
 
     if ((shipOrientation === 'horizontal') && !horizontalLimits.slice(0, 10*(shipLength-1)).includes(shipDropSquareIndex+spaceFromLastEl) && noShipHere.every(x=>x===true)){
         for (i=0;i<shipLength;i++){
-            GBPLayerEl[shipDropSquareIndex+spaceFromLastEl-i].classList.add('shipEl')
+            GBPLayerEl[shipDropSquareIndex+spaceFromLastEl-i].classList.add('playerShipEl')
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl-i].classList.add(`${draggedShipClass}`)
             let tempArr = (shipDropSquareIndex+spaceFromLastEl-i).toString().split("");
             if (tempArr.length === 1){
@@ -298,7 +298,7 @@ function dragDrop(e) {
     }
     else if ((shipOrientation === 'vertical') && !verticalLimits.slice(0, 10*(shipLength-1)).includes(shipDropSquareIndex+spaceFromLastEl*10) && noShipHere.every(x=>x===true)) {
         for (i=0;i<shipLength;i++){
-            GBPLayerEl[shipDropSquareIndex+spaceFromLastEl*10-i*10].classList.add('shipEl');
+            GBPLayerEl[shipDropSquareIndex+spaceFromLastEl*10-i*10].classList.add('playerShipEl');
             GBPLayerEl[shipDropSquareIndex+spaceFromLastEl*10-i*10].classList.add(`${draggedShipClass}`);
             let tempArr = (shipDropSquareIndex+spaceFromLastEl*10-i*10).toString().split("");
             if (tempArr.length === 1){
@@ -415,6 +415,9 @@ function render(e){
                 replay.style.display = 'block';
             }
             cpuTurn();
+            if (winConditionMet===true){
+                replay.style.display = 'block';
+            }
         }
     }
 }
@@ -466,11 +469,8 @@ function updateShipHp(guess, role){
         }
          else if (tempGridEl.classList.contains(ship) && gsThis[`${ship}Hp`]==1){
             gsThis[`${ship}Hp`]--;
-            if (gsThis === gameState.cpu){
-                const wholeShip = document.querySelectorAll(`.cpuShipEl.${ship}`)
-                wholeShip.forEach(x=>x.style.backgroundColor = 'rgb(182, 31, 31)');
-                console.log(wholeShip)
-            }
+            const wholeShip = document.querySelectorAll(`.${role}ShipEl.${ship}`)
+            wholeShip.forEach(x=>x.style.backgroundColor = 'rgb(182, 31, 31)');
             gameInfo.innerText = `The ${gsThis.opponentName}'s ${ship} has sunk!`;
         }
         })
@@ -484,6 +484,8 @@ function updateShipHp(guess, role){
         }
 }
 
+
+/*Cpu AI*/
 function cpuTurn(){
     let tempGuess = cpuGuess()
     const cpuGuessEl = document.getElementById(`_${tempGuess}`);
@@ -530,13 +532,13 @@ function cpuCheckIfHit(guess){
     else return false;
 }
 function newPotentialGuessIfHit (guess){
-    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess-10))
+    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess-10) && (!gameState.cpu.guesses.includes(guess+10)))
         gameState.cpu.potentialGuesses.push(guess+10);
-    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess+10))
+    if( guess>9 && guess<=89 && gameState.cpu.leads.includes(guess+10) && (!gameState.cpu.guesses.includes(guess-10)))
         gameState.cpu.potentialGuesses.push(guess-10);
-    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess-1))
+    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess-1) && (!gameState.cpu.guesses.includes(guess+1)))
         gameState.cpu.potentialGuesses.push(guess+1);
-    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess+1))
+    if( guess%10 !==9 && guess%10 !==0 && gameState.cpu.leads.includes(guess+1) && (!gameState.cpu.guesses.includes(guess-1)))
         gameState.cpu.potentialGuesses.push(guess-1);
 }
 function cpuGuess(){
@@ -545,37 +547,19 @@ function cpuGuess(){
     gameState.cpu.guesses.push(guess);
 
     if( cpuCheckIfHit(guess) ){
-        //
         updateShipHp(guess, "player");
-        //^
         gameState.cpu.leads.push(guess);
         if(gameState.cpu.potentialGuesses.length) {
             newPotentialGuessIfHit(guess);
             if( !huntDirection ){
-                // see if there's a hunt-pattern
                 gameState.cpu.huntMode = cpuCheckProximityHits(guess);
                 gameState.cpu.huntGuess = guess;
             }
         }
         else if( !gameState.cpu.potentialGuesses.length && !gameState.cpu.huntMode ){
-            // generate NextGuess Leads ... 
             let aroundHitGuesses = cpuNextPotentialGuesses( guess );
-            gameState.cpu.potentialGuesses.push(...aroundHitGuesses); // = [...gameState.cpu.leads, ...newGuessLeads]
+            gameState.cpu.potentialGuesses.push(...aroundHitGuesses);
         }
-        // if( !gameState.cpu.potentialGuesses.length && !gameState.cpu.huntMode ){
-        //     // generate NextGuess Leads ... 
-        //     let aroundHitGuesses = cpuNextPotentialGuesses( guess );
-        //     gameState.cpu.potentialGuesses.push(...aroundHitGuesses); // = [...gameState.cpu.leads, ...newGuessLeads]
-        // } else {
-        //     newPotentialGuessIfHit(guess);
-        //     if( !huntDirection ){
-        //         // see if there's a hunt-pattern
-        //         gameState.cpu.huntMode = cpuCheckProximityHits(guess);
-        //         gameState.cpu.huntGuess = guess;
-        //     }
-        // }
-        // if hit, and no prior leads 
-        //cpuNextGuessAroundHit()
     }
     return guess;
 }
@@ -630,7 +614,6 @@ function cpuNextGuess(){
         const randomGuessIdx = Math.floor(Math.random()*(gameState.cpu.potentialGuesses.length));
         // guessId = gameState.cpu.potentialGuesses[chooseRandom][0].id;
         let chosenGuess = gameState.cpu.potentialGuesses[randomGuessIdx]
-
         gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(chosenGuess),1); 
         return chosenGuess;
     }

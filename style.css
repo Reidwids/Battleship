@@ -240,7 +240,7 @@ h1{
     justify-content: center;
     margin: 30 auto;
 }
-.shipEl{
+.playerShipEl{
     display: flex;
     align-items: center;
     justify-content: center;
