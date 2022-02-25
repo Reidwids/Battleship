@@ -122,9 +122,10 @@ function sfxToggleFunc(){
         sfxAmbientBoat.pause()
         lineSfx.style.display = 'block';
     }
-    if (sfxToggle===1 && allShipsPlaced){
-        sfxAmbientBoat.play();
+    if (sfxToggle===1){
         lineSfx.style.display = 'none'
+        if (allShipsPlaced===true)
+            sfxAmbientBoat.play();
     }
 }
 function playSfx(sfx){
@@ -584,7 +585,6 @@ function cpuNextGuess(){
         else{
             gameState.cpu.huntMode = "";
             gameState.cpu.huntGuess = null;
-            let LastHuntedElShip;
             const randomGuessIdx = Math.floor(Math.random()*(huntPotentialGuesses.length));
             let lastHuntedEl = document.querySelector(`#_${huntPotentialGuesses[randomGuessIdx]}`)
             gameState.cpu.potentialGuesses.splice(gameState.cpu.potentialGuesses.indexOf(huntPotentialGuesses[randomGuessIdx]),1) 
