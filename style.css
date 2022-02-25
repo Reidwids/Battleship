@@ -10,7 +10,7 @@ body{
     position: relative;
     z-index: -100;
     height: 100vh;
-    background-image: url(/Labs/Battleship/Files/background.png);
+    background-image: url(./Files/background.png);
     background-position: center; 
     background-repeat: no-repeat;
     background-size: cover;    

@@ -91,10 +91,10 @@ const music = new Audio();
 const sfxAmbientBoat = new Audio();
 const sfxBell = new Audio();
 const sfxSplash = new Audio();
-music.src = "/Labs/Battleship/Files/music.mp3";
-sfxBell.src = "/Labs/Battleship/Files/bell.wav";
-sfxSplash.src = "/Labs/Battleship/Files/splash.wav";
-sfxAmbientBoat.src = "/Labs/Battleship/Files/ambient.wav";
+music.src = "./Files/music.mp3";
+sfxBell.src = "./Files/bell.wav";
+sfxSplash.src = "./Files/splash.wav";
+sfxAmbientBoat.src = "./Files/ambient.wav";
 
 sound.addEventListener("click", playMusic);
 sfx.addEventListener("click", sfxToggleFunc);
