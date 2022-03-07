@@ -521,7 +521,6 @@ function cpuCheckProximityHits( guess ){
     else
         return false
 }
-
 function cpuCheckIfHit(guess){
     let tempArr = guess.toString().split("")
     if (tempArr.length===1 && gameState.player.grid[0][parseInt(tempArr[0])]===0)
@@ -544,7 +543,6 @@ function cpuGuess(){
     let huntDirection = gameState.cpu.huntMode;
     let guess = cpuNextGuess();
     gameState.cpu.guesses.push(guess);
-
     if( cpuCheckIfHit(guess) ){
         updateShipHp(guess, "player");
         gameState.cpu.leads.push(guess);
@@ -562,8 +560,6 @@ function cpuGuess(){
     }
     return guess;
 }
-
-
 function cpuNextGuess(){
     if( gameState.cpu.huntMode ){
         let huntPotentialGuesses = [];
@@ -598,7 +594,6 @@ function cpuNextGuess(){
             return huntPotentialGuesses[randomGuessIdx]
         }
     }
-
     if ( gameState.cpu.potentialGuesses.length>0 ){
         const randomGuessIdx = Math.floor(Math.random()*(gameState.cpu.potentialGuesses.length));
         let chosenGuess = gameState.cpu.potentialGuesses[randomGuessIdx]
