@@ -311,8 +311,6 @@ function dragDrop(e) {
             }
         }
         draggedShip.parentNode.remove();
-        
-        sfxSplash.play()
     }
     e.target.classList.remove('drag-over');
     selectedShipElId = "";
